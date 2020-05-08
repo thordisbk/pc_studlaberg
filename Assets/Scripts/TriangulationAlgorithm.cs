@@ -47,20 +47,19 @@ FillInPolygonHole(List triangles, Point newPoint, List polygonHole):
 
 public class TriangulationAlgorithm : MonoBehaviour
 {
-    public bool VERBOSE = false;
-
     public int pointsNum = 10;
     public float max_x = 5;
     public float max_y = 5;
-
-
-    public bool doTriangulation = false;
-
-    RandomPoints randomPoints;
-
     public GameObject spherePrefab;
 
+    private RandomPoints randomPoints;
+
+    public bool VERBOSE = false;
+    public bool doTriangulation = false;
     public bool cleanUpBaseTriangle = true;
+    public bool validateAfterEveryPoint = true;
+    public bool showTriangulation = true;
+    public bool showVoronoi = true;
 
     //private List<Triangle> triangles;
 
@@ -82,7 +81,7 @@ public class TriangulationAlgorithm : MonoBehaviour
 
     void InitTriangulation() {
         // create random points
-        Vector2[] points = randomPoints.CreateRandomPoints(pointsNum, max_x, max_y);
+        Vector2[] points = randomPoints.CreateRandomPoints(pointsNum, max_x, max_y, VERBOSE);
 
         // create starting points (the big triangle)
         Vector2[] startPoints = new Vector2[3];
@@ -102,25 +101,23 @@ public class TriangulationAlgorithm : MonoBehaviour
         List<Triangle> triangles = new List<Triangle>();
 
         // create base triangle
-        //Triangle firstTriangle = new Triangle(startPoints[0], startPoints[1], startPoints[2]);
         //Triangle firstTriangle = new Triangle(new Edge(startPoints[1], startPoints[2]), new Edge(startPoints[0], startPoints[1]), new Edge(startPoints[0], startPoints[2]));
         Triangle firstTriangle = new Triangle(new Edge(startPoints[0], startPoints[1]), new Edge(startPoints[1], startPoints[2]), new Edge(startPoints[2], startPoints[0]));
         triangles.Add(firstTriangle);
 
         // add a new point to an existing triangulation
+        List<Vector2> tmpPoints = new List<Vector2>();
         foreach (Vector2 p in points) {
             if (VERBOSE) Debug.Log("ADD NEW POINT --------------- " + p);
             Triangulation(ref triangles, p);
-        }
 
-        // cleanup 
-        if (cleanUpBaseTriangle) Cleanup(ref triangles, startPoints);
-
-        // show
-        if (VERBOSE) Debug.Log("-------");
-        if (VERBOSE) Debug.Log("num of triangles: " + triangles.Count);
-        foreach(Triangle t in triangles) {
-            t.DrawTriangle();
+            if (validateAfterEveryPoint) {
+                tmpPoints.Add(p);
+                int invalidsCheck = CountInvalidTriangles(triangles, tmpPoints.ToArray(), false);  // findFirst=true
+                if (invalidsCheck > 0) {
+                    Debug.LogError("------ !!!: found error");
+                }
+            }
         }
 
         // check if there are invalid triangles
@@ -132,8 +129,20 @@ public class TriangulationAlgorithm : MonoBehaviour
         if (invalids == 0) {
             // compute VoronoiDiagram TODO do in another class
             Voronoi voronoi = new Voronoi(max_x, max_y);
-            voronoi.ComputeVoronoi(triangles, points);
+            voronoi.ComputeVoronoi(triangles, points, true);
         }
+
+        // cleanup 
+        if (cleanUpBaseTriangle) Cleanup(ref triangles, startPoints);
+
+        // show triangulation
+        if (VERBOSE) Debug.Log("------- num of triangles: " + triangles.Count);
+        if (showTriangulation) {
+            foreach (Triangle t in triangles) {
+                t.DrawTriangle();
+            }
+        }
+
     }
 
     void Triangulation(ref List<Triangle> triangles, Vector2 newPoint) {
@@ -146,6 +155,7 @@ public class TriangulationAlgorithm : MonoBehaviour
         RemoveDuplicateEdgesFromPolygonHole(ref polygonHole);
         RemoveBadTrianglesFromTriangulation(ref triangles, ref badTriangles);
         FillInPolygonHole(ref triangles, newPoint, ref polygonHole);
+        RemoveDuplicateTriangles(ref triangles);  // TODO should not be needed
     }
 
     void FindInvalidatedTriangles(ref List<Triangle> triangles, Vector2 newPoint, 
@@ -177,7 +187,7 @@ public class TriangulationAlgorithm : MonoBehaviour
         foreach (Vector2 p in points) {
             foreach(Triangle t in triangles) {
                 if (t.IsPointInsideCircumcircle(p) && !t.IsPointACorner(p)) {
-                    if (VERBOSE) Debug.Log(" - Found invalid " + p + " : " + t.ToString());
+                    if (VERBOSE) Debug.Log(" - Found invalid. Point " + p + " : \n" + t.ToString());
                     counter++;
                     if (findFirst) {
                         // only return first to avoid comparing the rest
@@ -186,7 +196,7 @@ public class TriangulationAlgorithm : MonoBehaviour
                 }
             }
         }
-        if (VERBOSE) Debug.Log("Invalid triangles: " + counter);
+        if (VERBOSE) Debug.Log(" - Invalid triangles: " + counter);
         return counter;
     }
 
@@ -253,7 +263,14 @@ public class TriangulationAlgorithm : MonoBehaviour
         if (VERBOSE) Debug.Log("# bad triangles: " + badTriangles.Count);
         if (VERBOSE) Debug.Log("triangles size before removal: " + triangles.Count);
         foreach (Triangle t in badTriangles) {
-            triangles.Remove(t);
+            // removing is not done correctly !
+            //triangles.Remove(t);
+            for (int i = triangles.Count - 1; i >= 0; i--) {
+                if (triangles[i].isSame(t)) {
+                    triangles.RemoveAt(i);
+                    if (VERBOSE) Debug.Log("Removed triangle: " + t);
+                }
+            }
         }
         if (VERBOSE) Debug.Log("triangles size after removal: " + triangles.Count);
         if (VERBOSE) { foreach (Triangle t in triangles) Debug.Log(t.ToString()); }
@@ -266,10 +283,41 @@ public class TriangulationAlgorithm : MonoBehaviour
             Vector2 v2 = edge.pointB;
             //Triangle t = new Triangle(edge, new Edge(newPoint, v1), new Edge(newPoint, v2));  // orig
             Triangle t = new Triangle(edge, new Edge(v2, newPoint), new Edge(newPoint, v1));
+            if (VERBOSE) Debug.Log("New triangle circumcenter: " + t.GetCircumcenter());
             triangles.Add(t);
         }
         if (VERBOSE) Debug.Log("After filling:");
         if (VERBOSE) { foreach (Triangle t in triangles) Debug.Log(t.ToString()); }
+    }
+
+    private void RemoveDuplicateTriangles(ref List<Triangle> triangles) {
+        /*foreach (Triangle t1 in triangles) {
+            int counter = 0;
+            foreach (Triangle t2 in triangles) {
+                if (t1.isSame(t2)) {
+                    counter++;
+                }
+            }
+            if (VERBOSE) Debug.Log("Counter: " + counter + ". Triangle: " + t1);
+        }*/
+        List<int> indices = new List<int>();
+        for (int i = triangles.Count - 1; i >= 0; i--) {
+            int counter = 0;
+            for (int j = i; j >= 0; j--) {
+                if (i != j && triangles[i].isSame(triangles[j])) {
+                    if (VERBOSE) Debug.Log("! found duplicate triangle");
+                    //triangles.RemoveAt(i);
+                    indices.Add(i);
+                    indices.Add(j);
+                    // reset
+                }
+            }            
+        }
+        indices.Sort((a, b) => b.CompareTo(a));
+        if (VERBOSE) { foreach (int i in indices) Debug.Log("i: " + i); }
+        foreach (int i in indices) {
+            triangles.RemoveAt(i);  // will go from highest to lowest index
+        }
     }
 
     private void Cleanup(ref List<Triangle> triangles, Vector2[] startPoints) {

@@ -76,7 +76,7 @@ public class Triangle
         //var center = new Vector2(aux1 / div, aux2 / div);
         //circumcenter = center;
         circumcenter = new Vector2(aux1 / div, aux2 / div);
-        Debug.Log("circumcenter: " + circumcenter);
+        // Debug.Log("circumcenter: " + circumcenter);
         //radiusSquared = (center.x - p0.x) * (center.x - p0.x) + (center.y - p0.y) * (center.y - p0.y);
         radius = (circumcenter - p0).magnitude;
     }

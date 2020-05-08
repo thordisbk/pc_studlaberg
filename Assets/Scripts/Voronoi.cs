@@ -12,7 +12,7 @@ public class Voronoi
         max_y = maxY;
     }
 
-    public void ComputeVoronoi(List<Triangle> triangles, Vector2[] points) {
+    public void ComputeVoronoi(List<Triangle> triangles, Vector2[] points, bool onlyWithinBoundary=true) {
         // find distinct edges
         /*List<Edge> edges;
 
@@ -32,7 +32,8 @@ public class Voronoi
                         Vector2 cc1 = triangles[i].GetCircumcenter();
                         Vector2 cc2 = triangles[j].GetCircumcenter();
 
-                        if (IsPointWithinBoundary(cc1) && IsPointWithinBoundary(cc2)) {
+                        if (!onlyWithinBoundary || (onlyWithinBoundary && IsPointWithinBoundary(cc1) && IsPointWithinBoundary(cc2))) {
+                            // including those from outside the boundary will look strange and is best avoided
                             Edge newEdge = new Edge(cc1, cc2);
                             vorEdges.Add(newEdge);
                         }

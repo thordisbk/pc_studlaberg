@@ -385,14 +385,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e5bb962a25da4548bebac740966bb81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  VERBOSE: 1
-  pointsNum: 30
-  max_x: 10
-  max_y: 10
-  doTriangulation: 1
+  pointsNum: 300
+  max_x: 50
+  max_y: 50
   spherePrefab: {fileID: 7109934805902325103, guid: 17c1b0d87fee442428ff485443d25aba,
     type: 3}
+  VERBOSE: 0
+  doTriangulation: 1
   cleanUpBaseTriangle: 1
+  validateAfterEveryPoint: 0
+  showTriangulation: 0
+  showVoronoi: 1
 --- !u!4 &195512905
 Transform:
   m_ObjectHideFlags: 0

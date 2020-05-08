@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.5748171, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -385,12 +385,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e5bb962a25da4548bebac740966bb81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointsNum: 2
-  width: 5
-  height: 5
-  doTriangulation: 0
+  VERBOSE: 1
+  pointsNum: 30
+  max_x: 10
+  max_y: 10
+  doTriangulation: 1
   spherePrefab: {fileID: 7109934805902325103, guid: 17c1b0d87fee442428ff485443d25aba,
     type: 3}
+  cleanUpBaseTriangle: 1
 --- !u!4 &195512905
 Transform:
   m_ObjectHideFlags: 0

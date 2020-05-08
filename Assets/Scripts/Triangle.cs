@@ -16,27 +16,6 @@ public class Triangle
     private float radiusSquared;
     private float radius;
 
-    /*public Triangle(Vector2 pA, Vector2 pB, Vector2 pC) {
-        pointA = pA;
-        pointB = pB;
-        pointC = pC;
-
-        edgeAB = new Edge(pointA, pointB);
-        edgeBC = new Edge(pointB, pointC);
-        edgeCA = new Edge(pointC, pointA);
-
-        bool isCCW = MakeCounterClockwise(pointA, pointB, pointC);
-        Debug.Log("is CCW? " + isCCW);
-        if (isCCW) {
-            // switch points B and C
-            Vector2 tmp = pointB;
-            pointB = pointC;
-            pointC = tmp;
-        }
-        
-        FindCircumcircle();
-    }*/
-
     public Triangle(Edge e1, Edge e2, Edge e3) {
         pointA = e1.pointA;
         pointB = e2.pointA;
@@ -49,6 +28,10 @@ public class Triangle
         bool isCCW = MakeCounterClockwise(pointA, pointB, pointC);
 
         FindCircumcircle();
+    }
+
+    public Vector2 GetCircumcenter() {
+        return circumcenter;
     }
 
     private bool MakeCounterClockwise(Vector2 point1, Vector2 point2, Vector2 point3) {
@@ -106,9 +89,40 @@ public class Triangle
         else return false;
     }
 
+    public bool IsPointACorner(Vector2 point) {
+        // returns true if point is part of the Triangles 3 vertices
+        return (point == pointA || point == pointB || point == pointC);
+    }
+
     public void DrawTriangle() {
         edgeAB.DrawEdge();
         edgeBC.DrawEdge();
         edgeCA.DrawEdge();
+    }
+
+    public override string ToString() {
+        return "Triangle defined by:\n" + edgeAB + "\n" + edgeBC + "\n" + edgeCA + "\n";
+    }  
+
+    public bool isSame(Triangle other) {
+        // returns true if the triangles share their vertices
+        if (other == null) return false;
+        if (!(pointA == other.pointA || pointA == other.pointB || pointA == other.pointC)) return false;
+        if (!(pointB == other.pointA || pointB == other.pointB || pointB == other.pointC)) return false;
+        if (!(pointC == other.pointA || pointC == other.pointB || pointC == other.pointC)) return false;
+        // then found pointA, pointB and pointC in other
+        return true;
+    }
+
+    public bool isAdjacent(Triangle other) {
+        // returns true if the triangles are adjacent, that is, they share an edge
+        if (other == null) return false;
+        // they may not be the same triangle
+        if (this.isSame(other)) return false;
+        // they have to share at least one edge
+        if (edgeAB.isSame(other.edgeAB) || edgeAB.isSame(other.edgeBC) || edgeAB.isSame(other.edgeCA)) return true;
+        if (edgeBC.isSame(other.edgeAB) || edgeBC.isSame(other.edgeBC) || edgeBC.isSame(other.edgeCA)) return true;
+        if (edgeCA.isSame(other.edgeAB) || edgeCA.isSame(other.edgeBC) || edgeCA.isSame(other.edgeCA)) return true;
+        return false;
     }
 }

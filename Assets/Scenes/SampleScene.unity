@@ -356,6 +356,55 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &195512903
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 195512905}
+  - component: {fileID: 195512904}
+  m_Layer: 0
+  m_Name: Triangulation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &195512904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 195512903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e5bb962a25da4548bebac740966bb81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pointsNum: 5
+  width: 5
+  height: 5
+  doTriangulation: 0
+  spherePrefab: {fileID: 7109934805902325103, guid: 17c1b0d87fee442428ff485443d25aba,
+    type: 3}
+--- !u!4 &195512905
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 195512903}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.9293184, y: -2.5380034, z: -7.54856}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 13
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &487616471
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,7 +476,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 487616471}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.7, y: -1, z: 3}
+  m_LocalPosition: {x: 5.24, y: -1, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -579,7 +628,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1419221185
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -760,7 +809,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1830760078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -770,11 +819,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1830760077}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d174a68fb4dcbc428cc295f7e634509, type: 3}
+  m_Script: {fileID: 11500000, guid: c2a91e47f33a3f24ea317dbeb33d0a5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 512
-  height: 512
+  width: 1024
+  height: 1024
   cellCount: 50
   reevaluateCentroids: 0
 --- !u!212 &1830760079
@@ -944,6 +993,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Heptagon
       objectReference: {fileID: 0}
+    - target: {fileID: 2012088179918106473, guid: 3dd4b8269cf4f4ed796fe779c79dbc0c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2012088179918106472, guid: 3dd4b8269cf4f4ed796fe779c79dbc0c,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1012,6 +1066,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Hexagon
+      objectReference: {fileID: 0}
+    - target: {fileID: 4300974090794975870, guid: 97f84a99ff779475894bc0f85e9581cf,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4300974090794975871, guid: 97f84a99ff779475894bc0f85e9581cf,
         type: 3}
@@ -1082,6 +1141,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Pentagon
       objectReference: {fileID: 0}
+    - target: {fileID: 5351124732416741342, guid: 5588e013936684cbfbe918c27f0a4ad1,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5351124732416741153, guid: 5588e013936684cbfbe918c27f0a4ad1,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1151,6 +1215,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Octagon
       objectReference: {fileID: 0}
+    - target: {fileID: 6061147461515675812, guid: 8ce46d945d56d47ca98f3d5686b8d4b7,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6061147461515675811, guid: 8ce46d945d56d47ca98f3d5686b8d4b7,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1219,6 +1288,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Square
+      objectReference: {fileID: 0}
+    - target: {fileID: 7205358285829326732, guid: 9173618cae1dd453aa72610148a33726,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7205358285829326733, guid: 9173618cae1dd453aa72610148a33726,
         type: 3}

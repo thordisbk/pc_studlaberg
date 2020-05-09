@@ -4,11 +4,19 @@ using UnityEngine;
 
 public class RandomPoints
 {
+    private float max_x;
+    private float max_y;
+
     public bool useMinDist = true;
     private float minDist = 0.11f;
     private float minDistSqr;
 
-    public Vector2[] CreateRandomPoints(int num, float maxX, float maxY, bool verbose=false) {
+    public RandomPoints(float maxX, float maxY) {
+        max_x = maxX;
+        max_y = maxY;
+    }
+
+    public Vector2[] CreateRandomPoints(int num, bool verbose=false) {
         // returns a Vector2 array of random values on a specified plane
 
         //return UseTestPoints();
@@ -17,8 +25,8 @@ public class RandomPoints
 
         Vector2[] arr = new Vector2[num];
         for (int i = 0; i < num; i++) {
-            float x = Random.Range(0f, maxX);
-            float y = Random.Range(0f, maxY);
+            float x = Random.Range(0f, max_x);
+            float y = Random.Range(0f, max_y);
             Vector2 newPoint = new Vector2(x, y);
 
             if (useMinDist) {

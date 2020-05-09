@@ -56,33 +56,74 @@ public class TriangulationAlgorithm : MonoBehaviour
 
     public bool VERBOSE = false;
     public bool doTriangulation = false;
+    public bool doRelaxation = false;
+    [Header("Triangulation")]
     public bool cleanUpBaseTriangle = true;
     public bool validateAfterEveryPoint = true;
     public bool showTriangulation = true;
+    [Header("Voronoi")]
+    public bool onlyUseVoronoiWithinBoundaries = true;
+    public bool removeOpenVoronoiCells = true;
+    public bool drawVoronoiCenterEdges = false;
     public bool showVoronoi = true;
+
+    private bool firstTriangulationDone = false;
+    private Voronoi voronoi;
+    private int relaxTimes = 0;
 
     //private List<Triangle> triangles;
 
     // Start is called before the first frame update
     void Start()
     {
-        randomPoints = new RandomPoints();
+        randomPoints = new RandomPoints(max_x, max_y);
         //triangles = new List<Triangle>();
+        doRelaxation = false;
+        
+        voronoi = new Voronoi(max_x, max_y);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (doTriangulation) {
+        if (doTriangulation && !firstTriangulationDone) {
             doTriangulation = false;
-            InitTriangulation();   
+
+            // create random points
+            Vector2[] points = randomPoints.CreateRandomPoints(pointsNum, VERBOSE);
+
+            InitTriangulation(points);   
+            firstTriangulationDone = true;
+        }
+
+        if (doRelaxation) {
+            if (!firstTriangulationDone) {
+                Debug.Log("Cannot to relaxation until triangulation is ready.");
+            }
+            else {
+                relaxTimes++;
+                Debug.Log("Apply Relaxation #" + relaxTimes);
+                RelaxVoronoi();
+            }
+            doRelaxation = false;
         }
     }
 
-    void InitTriangulation() {
-        // create random points
-        Vector2[] points = randomPoints.CreateRandomPoints(pointsNum, max_x, max_y, VERBOSE);
+    void RelaxVoronoi() {
+        // instead of random points, use the average of voronoi cell boundary points
+        List<Vector2> points = new List<Vector2>();
+        foreach (VoronoiCell voronoiCell in voronoi.voronoiCells) {
+            points.Add(voronoiCell.averageCenter);
+        }
+        // clear the current voronoi
+        voronoi = null;
+        voronoi = new Voronoi(max_x, max_y);
+        // to the triangulation again
+        InitTriangulation(points.ToArray());
+    }
 
+    void InitTriangulation(Vector2[] points) {
+        
         // create starting points (the big triangle)
         Vector2[] startPoints = new Vector2[3];
         startPoints[0] = new Vector2(0f, 0f);
@@ -93,11 +134,13 @@ public class TriangulationAlgorithm : MonoBehaviour
         foreach (Vector2 p in points) {
             Instantiate(spherePrefab, p, Quaternion.identity);
         }
-        Instantiate(spherePrefab, startPoints[0], Quaternion.identity);
-        Instantiate(spherePrefab, startPoints[1], Quaternion.identity);
-        Instantiate(spherePrefab, startPoints[2], Quaternion.identity);
+        if (!cleanUpBaseTriangle) {
+            Instantiate(spherePrefab, startPoints[0], Quaternion.identity);
+            Instantiate(spherePrefab, startPoints[1], Quaternion.identity);
+            Instantiate(spherePrefab, startPoints[2], Quaternion.identity);
+        }
 
-        // initialize the list ot hold the triangles
+        // initialize the list to hold the triangles
         List<Triangle> triangles = new List<Triangle>();
 
         // create base triangle
@@ -128,18 +171,27 @@ public class TriangulationAlgorithm : MonoBehaviour
 
         if (invalids == 0) {
             // compute VoronoiDiagram TODO do in another class
-            Voronoi voronoi = new Voronoi(max_x, max_y);
-            voronoi.ComputeVoronoi(triangles, points, true);
+            voronoi.ComputeVoronoi(triangles, points, onlyUseVoronoiWithinBoundaries, removeOpenVoronoiCells, drawVoronoiCenterEdges);
         }
 
         // cleanup 
-        if (cleanUpBaseTriangle) Cleanup(ref triangles, startPoints);
+        if (cleanUpBaseTriangle) {
+            Cleanup(ref triangles, startPoints);
+        }
 
         // show triangulation
         if (VERBOSE) Debug.Log("------- num of triangles: " + triangles.Count);
         if (showTriangulation) {
             foreach (Triangle t in triangles) {
                 t.DrawTriangle();
+            }
+        }
+
+        if (showVoronoi) {
+            foreach (VoronoiCell cell in voronoi.voronoiCells) {
+                foreach (Edge e in cell.boundaryEdges) {
+                    e.DrawEdgeColored(Color.red);
+                }
             }
         }
 
@@ -302,7 +354,6 @@ public class TriangulationAlgorithm : MonoBehaviour
         }*/
         List<int> indices = new List<int>();
         for (int i = triangles.Count - 1; i >= 0; i--) {
-            int counter = 0;
             for (int j = i; j >= 0; j--) {
                 if (i != j && triangles[i].isSame(triangles[j])) {
                     if (VERBOSE) Debug.Log("! found duplicate triangle");
@@ -336,4 +387,8 @@ public class TriangulationAlgorithm : MonoBehaviour
         Debug.Log("CLEANUP (after) triangles: " + triangles.Count);
     }
         
+
+    void OnDrawGizmos() {
+
+    }
 }

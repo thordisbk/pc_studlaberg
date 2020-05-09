@@ -385,16 +385,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e5bb962a25da4548bebac740966bb81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointsNum: 300
-  max_x: 50
-  max_y: 50
+  pointsNum: 30
+  max_x: 5
+  max_y: 5
   spherePrefab: {fileID: 7109934805902325103, guid: 17c1b0d87fee442428ff485443d25aba,
     type: 3}
   VERBOSE: 0
   doTriangulation: 1
-  cleanUpBaseTriangle: 1
+  doRelaxation: 0
+  cleanUpBaseTriangle: 0
   validateAfterEveryPoint: 0
-  showTriangulation: 0
+  showTriangulation: 1
+  onlyUseVoronoiWithinBoundaries: 1
+  removeOpenVoronoiCells: 1
+  drawVoronoiCenterEdges: 0
   showVoronoi: 1
 --- !u!4 &195512905
 Transform:
@@ -404,7 +408,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 195512903}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.9293184, y: -2.5380034, z: -7.54856}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

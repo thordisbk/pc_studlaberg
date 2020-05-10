@@ -7,7 +7,7 @@ public class RandomPoints
     private float max_x;
     private float max_z;
 
-    public bool useMinDist = true;
+    public bool useMinDist = false;
     private float minDist = 0.11f;
     private float minDistSqr;
 

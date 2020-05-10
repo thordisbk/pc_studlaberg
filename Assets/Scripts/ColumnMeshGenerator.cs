@@ -7,16 +7,22 @@ public class ColumnMeshGenerator : MonoBehaviour
 {
     List<Vector3> points;
 
+    bool verbose = false;
+
     Mesh mesh;
     Vector3[] vertices;
     int[] triangles;
+    Vector2[] uv;
 
-    private float _z = 0f;
     private float columnLength = 5f;
 
+    private bool bottomMesh = true;
+
     // this function must be called on creation
-    public void Init(VoronoiCell cell, GameObject spherePrefab) {
+    public void Init(VoronoiCell cell, bool createBottomMesh=true) {
         
+        bottomMesh = createBottomMesh;
+
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
 
@@ -38,13 +44,16 @@ public class ColumnMeshGenerator : MonoBehaviour
         int corners = points.Count - 1;  // subtract the center point
         
         vertices = CreateVertices(corners);
+        uv = CreateUVs(corners);
         triangles = CreatePrismTriangles(corners);
+        
     }
 
     void UpdateMesh() {
         mesh.Clear();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
+        mesh.uv = uv;
 
         mesh.RecalculateNormals();
     }
@@ -66,7 +75,7 @@ public class ColumnMeshGenerator : MonoBehaviour
         }
 
         Vector3[] vertices_ = new Vector3[v];
-        Debug.Log("Number of vertices_: " + v);
+        if (verbose) Debug.Log("Number of vertices_: " + v);
 
         // split the vertices to have hard edges between surfaces
         Vector3[] verticesTemp = new Vector3[pl*2];
@@ -91,7 +100,69 @@ public class ColumnMeshGenerator : MonoBehaviour
         return vertices_;
     }
 
-    int[] CreatePrismTriangles(int corners, bool bottomMesh=true) {
+    Vector2[] CreateUVs(int corners) {
+        int pl = points.Count;
+        int numOfSplits;  // min number of vertex splitting for disconected surfaces
+        int v;  // number of vertices needed for the mesh
+
+        if (corners % 2 == 1) {
+            // then the shape has an odd number of corners (eg triangular, pentagonal)
+            //  so there must be four splits
+            numOfSplits = 4;
+            v = (pl * 2) * 4;
+        }
+        else {
+            numOfSplits = 3;
+            v = (pl * 2) * 3;
+        }
+
+        Vector2[] uv_ = new Vector2[v];
+        if (verbose) Debug.Log("Number of uv_: " + v);
+
+        // split the vertices to have hard edges between surfaces
+        Vector2[] uvTemp = new Vector2[pl*2];
+        for (int i = 0; i < pl; i++) {
+            // for the top of the column
+            //if (i > 0) uvTemp[i] = new Vector2(0f, 0f);
+            //else uvTemp[i] = new Vector2(0.5f, 0.5f);
+            if (i == 0) uvTemp[i] = new Vector2(0.5f, 0.5f);
+            else if (i % 2 == 0) uvTemp[i] = new Vector2(0f, 0f);
+            else if (corners % 2 == 1 && i == pl-1) uvTemp[i] = new Vector2(1f, 0f);
+            else uvTemp[i] = new Vector2(0f, 1f);
+
+            // for the bottom of the column
+            //if (i > 0) uvTemp[i+pl] = new Vector2(0f, 0f);
+            //else uvTemp[i+pl] = new Vector2(0.5f, 0.5f);
+            if (i == 0) uvTemp[i+pl] = new Vector2(0.5f, 0.5f);
+            else if (i % 2 == 0) uvTemp[i+pl] = new Vector2(1f, 0f);
+            else if (corners % 2 == 1 && i == pl-1) uvTemp[i+pl] = new Vector2(0f, 1f);
+            else uvTemp[i+pl] = new Vector2(1f, 1f);
+        }
+
+        // for the sides of the UV
+        Vector2[] uvTempS = new Vector2[pl*2];
+        for (int i = 0; i < pl; i++) {
+
+            if (i % 2 == 0) uvTempS[i] = new Vector2(0f, 0f);
+            else uvTempS[i] = new Vector2(0f, 1f);
+
+            if (i % 2 == 0) uvTempS[i+pl] = new Vector2(1f, 0f);
+            else uvTempS[i+pl] = new Vector2(1f, 1f);
+        }
+        // for the last odd size FIXME (doesn't quite work)
+        //Vector2[] uvTempL = new Vector2[pl*2];
+
+        if (numOfSplits == 4) {
+            uv_ = uvTemp.Concat(uvTempS).Concat(uvTempS).Concat(uvTempS).ToArray();
+        }
+        else {
+            uv_ = uvTemp.Concat(uvTempS).Concat(uvTempS).ToArray();
+        }
+
+        return uv_;
+    }
+
+    int[] CreatePrismTriangles(int corners) {
         if (corners < 3) {
             Debug.LogError("CreatePrism(): minimum corner number is 3");
             return (new int[0]);

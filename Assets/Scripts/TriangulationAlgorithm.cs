@@ -7,43 +7,6 @@ using UnityEngine;
 //   I can add a new point and update my triangulation.
 // https://leatherbee.org/index.php/2018/10/06/terrain-generation-3-voronoi-diagrams/
 
-/*
-
-PSEUDO-CODE:
-
-Triangulation(List triangles, Point newPoint):
-    Let List badTriangles, List polygonHole be empty;
-    CALL FindInvalidatedTriangles(triangles, newPoint, badTriangles, polygonHole);
-    CALL RemoveDuplicateEdgesFromPolygonHole(polygonHole);
-    CALL RemoveBadTrianglesFromTriangulation(triangles, badTriangles);
-    CALL FillInPolygonHole(triangles, newPoint, polygonHole);
-
-FindInvalidatedTriangles(List triangles, Point newPoint, List badTriangles, List polygonHole):
-    FOR each t in triangles:
-        IF the circumcircle of t contains newPoint:
-            add t to badTriangles;
-            add all of t's 3 edges to polygonHole;
-
-RemoveDuplicateEdgesFromPolygonHole(List polygonHole):
-    FOR each edge in polygonHole:
-        IF the edge's second vertex is left of its first coordinate:
-            flip the edge around by swapping its vertices
-  
-    sort the edges in polygonHole by first vertex x-coordinate
-    FOR each edge in polygonHole:
-        IF edge is equivalent to previous edge, remove current edge
-
-RemoveBadTrianglesFromTriangulation(List triangles, List badTriangles):
-    FOR each t in badTriangles:
-        find t in triangles and remove
-
-FillInPolygonHole(List triangles, Point newPoint, List polygonHole):
-    FOR each edge in polygonHole:
-        Let v1 and v2 be the two vertices of edge
-        Let t be a new triangle with edges {edge, newPoint to v1, newPoint to v2}
-        add t to triangles
-*/
-
 
 public class TriangulationAlgorithm : MonoBehaviour
 {
@@ -64,11 +27,13 @@ public class TriangulationAlgorithm : MonoBehaviour
     public bool removeOpenVoronoiCells = true;
     public bool drawVoronoiCenterEdges = false;
     public bool showVoronoi = true;
+    public bool showVoronoiCenters = true;
     [Header("Columns")]
     public GameObject ColumnMeshPrefab;
     public bool createMesh = false;
     private bool meshesCreated = false;
     private List<GameObject> meshes;
+    public bool createBottomFace = true;
 
     private RandomPoints randomPoints;
     private bool firstTriangulationDone = false;
@@ -142,7 +107,7 @@ public class TriangulationAlgorithm : MonoBehaviour
             if (corners >= 3) {
                 GameObject obj = Instantiate(ColumnMeshPrefab, Vector3.zero, Quaternion.identity);
                 ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
-                cmg.Init(cell, spherePrefab);
+                cmg.Init(cell, createBottomFace);
                 meshes.Add(obj);
             }
         }
@@ -158,6 +123,7 @@ public class TriangulationAlgorithm : MonoBehaviour
         startPoints[2] = new Vector3(2f * max_x, _y, 0f);
 
         // visualize points
+        /*
         foreach (Vector3 p in points) {
             Instantiate(spherePrefab, p, Quaternion.identity);
         }
@@ -165,7 +131,7 @@ public class TriangulationAlgorithm : MonoBehaviour
             Instantiate(spherePrefab, startPoints[0], Quaternion.identity);
             Instantiate(spherePrefab, startPoints[1], Quaternion.identity);
             Instantiate(spherePrefab, startPoints[2], Quaternion.identity);
-        }
+        }*/
 
         // initialize the list to hold the triangles
         List<Triangle> triangles = new List<Triangle>();
@@ -208,30 +174,7 @@ public class TriangulationAlgorithm : MonoBehaviour
 
         // show triangulation
         if (VERBOSE) Debug.Log("------- num of triangles: " + triangles.Count);
-        if (showTriangulation) {
-            foreach (Triangle t in triangles) {
-                t.DrawTriangle();
-            }
-        }
-
-        if (showVoronoi) {
-            foreach (VoronoiCell cell in voronoi.voronoiCells) {
-                foreach (Edge e in cell.boundaryEdges) {
-                    e.DrawEdgeColored(Color.red);
-                }
-            }
-        }
-
-        if (drawVoronoiCenterEdges) {
-            // draw lines from center to all points
-            foreach (VoronoiCell cell in voronoi.voronoiCells) {
-                foreach (Vector3 p in cell.boundaryPoints) {
-                    Edge newEdge = new Edge(cell.center, p);
-                    newEdge.DrawEdgeColored(Color.green);
-                }
-            }
-        }
-
+        
     }
 
     void Triangulation(ref List<Triangle> triangles, Vector3 newPoint) {
@@ -427,5 +370,57 @@ public class TriangulationAlgorithm : MonoBehaviour
 
     void OnDrawGizmos() {
         // TODO
+
+        if (voronoi == null) {
+            return;
+        }
+
+        /*if (showTriangulation) {
+            foreach (Triangle t in triangles) {
+                //t.DrawTriangle();
+                Gizmos.color = Color.white;
+                Gizmos.DrawLine(t.pointA, t.pointB);
+                Gizmos.DrawLine(t.pointB, t.pointC);
+                Gizmos.DrawLine(t.pointC, t.pointA);
+            }
+        }*/
+
+        if (voronoi != null && showVoronoiCenters) {
+            /*foreach (Vector3 p in points) {
+                Instantiate(spherePrefab, p, Quaternion.identity);
+            }
+            if (!cleanUpBaseTriangle) {
+                Instantiate(spherePrefab, startPoints[0], Quaternion.identity);
+                Instantiate(spherePrefab, startPoints[1], Quaternion.identity);
+                Instantiate(spherePrefab, startPoints[2], Quaternion.identity);
+            }*/ 
+            foreach (VoronoiCell cell in voronoi.voronoiCells) {
+                Gizmos.color = Color.black;
+                Gizmos.DrawSphere(cell.center, 0.05f);
+            }
+
+        }
+
+        if (voronoi != null && showVoronoi) {
+            foreach (VoronoiCell cell in voronoi.voronoiCells) {
+                foreach (Edge e in cell.boundaryEdges) {
+                    //e.DrawEdgeColored(Color.red);
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawLine(e.pointA, e.pointB);
+                }
+            }
+        }
+
+        if (voronoi != null && drawVoronoiCenterEdges) {
+            // draw lines from center to all points
+            foreach (VoronoiCell cell in voronoi.voronoiCells) {
+                foreach (Vector3 p in cell.boundaryPoints) {
+                    //Edge newEdge = new Edge(cell.center, p);
+                    //newEdge.DrawEdgeColored(Color.green);
+                    Gizmos.color = Color.green;
+                    Gizmos.DrawLine(cell.center, p);
+                }
+            }
+        }
     }
 }

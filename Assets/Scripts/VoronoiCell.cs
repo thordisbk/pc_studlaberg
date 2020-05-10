@@ -11,6 +11,9 @@ public class VoronoiCell
 
     public Vector3 averageCenter;
 
+    // a cell can be marked as valid if it is closed and its boundaryPoints are within the bigger boundary
+    public bool isValid;
+
     public VoronoiCell(Vector3 c, List<Edge> edges) {
         center = c;
 

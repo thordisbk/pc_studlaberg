@@ -129,7 +129,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &17405446
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -147,7 +147,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 630a3ccb25ad9ee41b4a9d079d9c7d03, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -379,7 +379,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e5bb962a25da4548bebac740966bb81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointsNum: 50
+  pointsNum: 200
   max_x: 10
   max_z: 10
   spherePrefab: {fileID: 7109934805902325103, guid: 17c1b0d87fee442428ff485443d25aba,
@@ -394,9 +394,11 @@ MonoBehaviour:
   removeOpenVoronoiCells: 0
   drawVoronoiCenterEdges: 0
   showVoronoi: 1
+  showVoronoiCenters: 1
   ColumnMeshPrefab: {fileID: 6800096512831227748, guid: 5336f9561ac6efe4aaff24c6a655b44d,
     type: 3}
   createMesh: 0
+  createBottomFace: 1
 --- !u!4 &195512905
 Transform:
   m_ObjectHideFlags: 0
@@ -428,7 +430,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &487616473
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -634,7 +636,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1419221185
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -665,7 +667,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 630a3ccb25ad9ee41b4a9d079d9c7d03, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

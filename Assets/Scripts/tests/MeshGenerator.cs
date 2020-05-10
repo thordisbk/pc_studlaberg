@@ -12,6 +12,13 @@ public class MeshGenerator : MonoBehaviour
     Mesh mesh;
     Vector3[] vertices;
     int[] triangles;
+    Vector2[] uv;
+
+    // uv is position in texture that gets applied to that vertex
+    // use X and Z for top and bottom, use X and Y for sides (or X and Z?)
+    float maxX = 0f;
+    float maxY = 0f;
+    float maxZ = 0f;
 
     // Start is called before the first frame update
     void Start()
@@ -34,7 +41,17 @@ public class MeshGenerator : MonoBehaviour
             }
         }
 
+        // set maxX maxY maxZ
+        foreach (Transform p in points) {
+            if (p.position.x > maxX) maxX = p.position.x;
+            if (p.position.y > maxY) maxY = p.position.y;
+            if (p.position.z > maxZ) maxZ = p.position.z;
+        }
+        Debug.Log("MaxX: " + maxX + " MaxY: " + maxY + " MaxZ: " + maxZ);
+
         CreateShape();
+        FindUVs();
+        //uv = new Vector2[vertices.Length];
         UpdateMesh();
     }
 
@@ -79,26 +96,66 @@ public class MeshGenerator : MonoBehaviour
         }
 
         vertices = new Vector3[v];
+        uv = new Vector2[v];
         print("Number of vertices: " + v);
 
         // split the vertices to have hard edges between surfaces
         Vector3[] verticesTemp = new Vector3[pl*2];
+        Vector2[] uvTemp = new Vector2[pl*2];
         for (int i = 0; i < pl; i++) {
             // for the top of the column
             verticesTemp[i] = points[i].position;
+            
+            //uvTemp[i] = new Vector2(points[i].position.x/maxX, points[i].position.y/maxY);
+            if (i == 0) uvTemp[i] = new Vector2(0.5f, 0.5f);
+            else if (i % 2 == 0) uvTemp[i] = new Vector2(0f, 0f);
+            else if (corners % 2 == 1 && i == pl-1) uvTemp[i] = new Vector2(1f, 0f);
+            else uvTemp[i] = new Vector2(0f, 1f);
 
             // for the bottom of the column
             Vector3 p = new Vector3(points[i].position.x, 
                                     points[i].position.y - columnLength, 
                                     points[i].position.z);
             verticesTemp[i+pl] = p;
+            //uvTemp[i+pl] = new Vector2(p.x/maxX, p.y/maxY);
+            if (i == 0) uvTemp[i+pl] = new Vector2(0.5f, 0.5f);
+            else if (i % 2 == 0) uvTemp[i+pl] = new Vector2(1f, 0f);
+            else if (corners % 2 == 1 && i == pl-1) uvTemp[i+pl] = new Vector2(0f, 1f);
+            else uvTemp[i+pl] = new Vector2(1f, 1f);
         }
+        // for the sides of the UV
+        Vector2[] uvTempS = new Vector2[pl*2];
+        for (int i = 0; i < pl; i++) {
+
+            if (i % 2 == 0) uvTempS[i] = new Vector2(0f, 0f);
+            else uvTempS[i] = new Vector2(0f, 1f);
+
+            if (i % 2 == 0) uvTempS[i+pl] = new Vector2(1f, 0f);
+            else uvTempS[i+pl] = new Vector2(1f, 1f);
+        }
+        // for the last odd size
+        Vector2[] uvTempL = new Vector2[pl*2];
+        for (int i = 0; i < pl; i++) {
+
+            if (i % 2 == 0) uvTempL[i] = new Vector2(0f, 0f);
+            else if (corners % 2 == 1 && i == pl-1) uvTempL[i] = new Vector2(1f, 0f);
+            else uvTempL[i] = new Vector2(1f, 0f);
+
+            if (i % 2 == 0) uvTempL[i+pl] = new Vector2(1f, 1f);
+            else if (corners % 2 == 1 && i == pl-1) uvTempL[i+pl] = new Vector2(0f, 1f);
+            else uvTempL[i+pl] = new Vector2(0f, 1f);
+        }
+
 
         if (numOfSplits == 4) {
             vertices = verticesTemp.Concat(verticesTemp).Concat(verticesTemp).Concat(verticesTemp).ToArray();
+            //uv = uvTemp.Concat(uvTemp).Concat(uvTemp).Concat(uvTemp).ToArray();
+            uv = uvTemp.Concat(uvTempS).Concat(uvTempS).Concat(uvTempL).ToArray();
         }
         else {
             vertices = verticesTemp.Concat(verticesTemp).Concat(verticesTemp).ToArray();
+            //uv = uvTemp.Concat(uvTemp).Concat(uvTemp).ToArray();
+            uv = uvTemp.Concat(uvTempS).Concat(uvTempS).ToArray();
         }
 
         CreatePrism(corners);
@@ -109,10 +166,22 @@ public class MeshGenerator : MonoBehaviour
         if (corners == 8) CreateOctagonalPrism();*/
     }
 
+    void FindUVs() {
+
+    }
+
     void UpdateMesh() {
         mesh.Clear();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
+        mesh.uv = uv;
+
+        /*Bounds bounds = mesh.bounds;
+        Vector2[] uvs = new Vector2[vertices.Length];
+        for(int i = 0; i < vertices.Length; i++) {
+            uvs[i] = new Vector2(vertices[i].x / bounds.size.x, vertices[i].z / bounds.size.z);
+        }
+        mesh.uv = uvs;*/
 
         //mesh.RecalculateBounds();
         mesh.RecalculateNormals();

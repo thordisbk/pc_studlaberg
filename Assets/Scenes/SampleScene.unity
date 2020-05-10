@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.5748171, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -379,9 +379,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e5bb962a25da4548bebac740966bb81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointsNum: 15
-  max_x: 5
-  max_z: 5
+  pointsNum: 50
+  max_x: 10
+  max_z: 10
   spherePrefab: {fileID: 7109934805902325103, guid: 17c1b0d87fee442428ff485443d25aba,
     type: 3}
   VERBOSE: 0
@@ -389,10 +389,10 @@ MonoBehaviour:
   doRelaxation: 0
   cleanUpBaseTriangle: 1
   validateAfterEveryPoint: 0
-  showTriangulation: 1
+  showTriangulation: 0
   onlyUseVoronoiWithinBoundaries: 1
-  removeOpenVoronoiCells: 1
-  drawVoronoiCenterEdges: 1
+  removeOpenVoronoiCells: 0
+  drawVoronoiCenterEdges: 0
   showVoronoi: 1
   ColumnMeshPrefab: {fileID: 6800096512831227748, guid: 5336f9561ac6efe4aaff24c6a655b44d,
     type: 3}

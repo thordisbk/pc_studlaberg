@@ -42,7 +42,7 @@ public class Voronoi
                         Vector3 point2 = Vector3.zero;
                         GetCommonPoints(triangles[i], triangles[j], ref point1, ref point2);
 
-                        if (!onlyWithinBoundary || (onlyWithinBoundary && IsPointWithinBoundary(cc1) && IsPointWithinBoundary(cc2))) {
+                        //if (!onlyWithinBoundary || (onlyWithinBoundary && IsPointWithinBoundary(cc1) && IsPointWithinBoundary(cc2))) {
                             // including those from outside the boundary will look strange and is best avoided
                             Edge newEdge = new Edge(cc1, cc2);
                             //vorEdges.Add(newEdge);
@@ -57,7 +57,7 @@ public class Voronoi
                                 centroids.Add(point2, new List<Edge>());
                             }
                             centroids[point2].Add(newEdge);
-                        }
+                        //}
                     }
                 }
             }
@@ -67,6 +67,11 @@ public class Voronoi
         foreach (Vector3 key in centroids.Keys) {
             VoronoiCell newCell = new VoronoiCell(key, centroids[key]);
             voronoiCells.Add(newCell);
+        }
+
+        if (onlyWithinBoundary) {
+            // TODO remove cells that have boundaryPoints outside the main boundary
+            RemoveOutOfBoundsCells();
         }
 
         // TODO remove cells that are only connected to one other cell
@@ -93,7 +98,22 @@ public class Voronoi
         return (xOK && zOK);
     }
 
+    private void RemoveOutOfBoundsCells() {
+        int counter = 0;
+        for (int i = voronoiCells.Count - 1; i >= 0; i--) {
+            foreach (Vector3 bp in voronoiCells[i].boundaryPoints) {
+                if (!IsPointWithinBoundary(bp)) {
+                    voronoiCells.RemoveAt(i);
+                    counter++;
+                    break;  // break out of current foreach loop
+                }
+            }
+        }
+        Debug.Log("Removed " + counter + " out of bounds cells");
+    }
+
     private void RemoveLonerCells() {
+        int counter = 0;
         // remove cells that are only connected to one other cell
         for (int i = voronoiCells.Count - 1; i >= 0; i--) {
             // count how many edges this cell shares with other cells
@@ -106,8 +126,10 @@ public class Voronoi
             // if it shares fewer than 2 edges, remove it
             if (edgesShared < 2) {
                 voronoiCells.RemoveAt(i);
+                counter++;
             }
         }
+        Debug.Log("RemovedLonerCells: " + counter);
     }
 
     private void RemoveOpenCells() {

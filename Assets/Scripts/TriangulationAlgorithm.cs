@@ -140,9 +140,9 @@ public class TriangulationAlgorithm : MonoBehaviour
             int corners = cell.boundaryPoints.Count;
             Debug.Log("Corners: " + corners);
             if (corners >= 3) {
-                GameObject obj = Instantiate(ColumnMeshPrefab, cell.center, Quaternion.identity);
+                GameObject obj = Instantiate(ColumnMeshPrefab, Vector3.zero, Quaternion.identity);
                 ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
-                cmg.Init(cell);
+                cmg.Init(cell, spherePrefab);
                 meshes.Add(obj);
             }
         }

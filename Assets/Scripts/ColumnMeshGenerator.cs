@@ -15,7 +15,7 @@ public class ColumnMeshGenerator : MonoBehaviour
     private float columnLength = 5f;
 
     // this function must be called on creation
-    public void Init(VoronoiCell cell) {
+    public void Init(VoronoiCell cell, GameObject spherePrefab) {
         
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
@@ -28,6 +28,9 @@ public class ColumnMeshGenerator : MonoBehaviour
 
         CreateShape();
         UpdateMesh();
+
+        // visualize the vertices
+        // foreach (Vector3 p in vertices) { Instantiate(spherePrefab, p, Quaternion.identity); }
     }
 
     private void CreateShape() {
@@ -63,7 +66,7 @@ public class ColumnMeshGenerator : MonoBehaviour
         }
 
         Vector3[] vertices_ = new Vector3[v];
-        //Debug.Log("Number of vertices: " + v);
+        Debug.Log("Number of vertices_: " + v);
 
         // split the vertices to have hard edges between surfaces
         Vector3[] verticesTemp = new Vector3[pl*2];
@@ -74,7 +77,7 @@ public class ColumnMeshGenerator : MonoBehaviour
             // for the bottom of the column
             Vector3 p = new Vector3(points[i].x, 
                                     points[i].y - columnLength, 
-                                    _z);
+                                    points[i].z);
             verticesTemp[i+pl] = p;
         }
 
@@ -88,7 +91,7 @@ public class ColumnMeshGenerator : MonoBehaviour
         return vertices_;
     }
 
-    int[] CreatePrismTriangles(int corners, bool bottomMesh=false) {
+    int[] CreatePrismTriangles(int corners, bool bottomMesh=true) {
         if (corners < 3) {
             Debug.LogError("CreatePrism(): minimum corner number is 3");
             return (new int[0]);

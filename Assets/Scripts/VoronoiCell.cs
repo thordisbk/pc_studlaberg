@@ -5,17 +5,17 @@ using System.Linq;
 
 public class VoronoiCell
 {
-    public Vector2 center;
+    public Vector3 center;
     public List<Edge> boundaryEdges;
-    public List<Vector2> boundaryPoints;
+    public List<Vector3> boundaryPoints;
 
-    public Vector2 averageCenter;
+    public Vector3 averageCenter;
 
-    public VoronoiCell(Vector2 c, List<Edge> edges, bool drawCenterToPoints=false) {
+    public VoronoiCell(Vector3 c, List<Edge> edges) {
         center = c;
 
         // create boundaryPoints
-        boundaryPoints = new List<Vector2>();
+        boundaryPoints = new List<Vector3>();
         foreach (Edge edge in edges) {
             boundaryPoints.Add(edge.pointA);
             boundaryPoints.Add(edge.pointB);
@@ -23,7 +23,7 @@ public class VoronoiCell
         // remove duplicates from boundaryPoints
         boundaryPoints = boundaryPoints.Distinct().ToList();
         // sort boundaryPoints clockwise (needed for mesh generation)
-        ClockwiseComparerVector2 cwc = new ClockwiseComparerVector2(center);
+        ClockwiseComparerVector3 cwc = new ClockwiseComparerVector3(center);
         boundaryPoints.Sort(cwc);
 
         // create boundaryEdges such that the edges are in a clockwise order
@@ -37,19 +37,11 @@ public class VoronoiCell
         Edge lastNewEdge = new Edge(boundaryPoints[boundaryPoints.Count-1], boundaryPoints[0]);
         boundaryEdges.Add(lastNewEdge);
 
-        averageCenter = boundaryPoints.Aggregate(Vector2.zero, (acc, v) => acc + v) / boundaryPoints.Count;
-        Debug.Log("Average center: " + averageCenter);
+        averageCenter = boundaryPoints.Aggregate(Vector3.zero, (acc, v) => acc + v) / boundaryPoints.Count;
+        // Debug.Log("Average center: " + averageCenter);
 
-        Debug.Log("VoronoiCell vertices around center " + center + ":");
-        foreach (Vector2 v in boundaryPoints) Debug.Log(v);
-
-        if (drawCenterToPoints) {
-            // draw lines from center to all points
-            foreach (Vector2 p in boundaryPoints) {
-                Edge newEdge = new Edge(center, p);
-                newEdge.DrawEdgeColored(Color.green);
-            }
-        }
+        // Debug.Log("VoronoiCell vertices around center " + center + ":");
+        //foreach (Vector3 v in boundaryPoints) Debug.Log(v);
     }
 
     public bool ShareEdge(VoronoiCell cell) {
@@ -69,8 +61,8 @@ public class VoronoiCell
     public bool isClosed() {
         // return true if the cell is closed, that is, the edges form a polygon
         // boundaryEdges are in clockwise order, so going through them like this should work
-        Vector2 firstPoint = boundaryEdges[0].pointA;
-        Vector2 currPoint = boundaryEdges[0].pointB;
+        Vector3 firstPoint = boundaryEdges[0].pointA;
+        Vector3 currPoint = boundaryEdges[0].pointB;
         Debug.Log("Check if closed:");
         for (int i = 0; i < boundaryEdges.Count; i++) {
             /*if (currPoint != boundaryPoints) {

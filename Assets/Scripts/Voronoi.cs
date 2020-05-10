@@ -5,16 +5,16 @@ using UnityEngine;
 public class Voronoi 
 {
     private float max_x;
-    private float max_y;
+    private float max_z;
 
     public List<VoronoiCell> voronoiCells;
 
-    public Voronoi(float maxX, float maxY) {
+    public Voronoi(float maxX, float maxZ) {
         max_x = maxX;
-        max_y = maxY;
+        max_z = maxZ;
     }
 
-    public void ComputeVoronoi(List<Triangle> triangles, Vector2[] points, bool onlyWithinBoundary=true, bool removeOpenCells=true, bool drawCenterToPoints=false) {
+    public void ComputeVoronoi(List<Triangle> triangles, Vector3[] points, bool onlyWithinBoundary=true, bool removeOpenCells=true) {
         // find distinct edges
         /*List<Edge> edges;
 
@@ -26,7 +26,7 @@ public class Voronoi
         }*/
 
         // centroids and their boundaries
-        Dictionary<Vector2, List<Edge>> centroids = new Dictionary<Vector2, List<Edge>>();
+        Dictionary<Vector3, List<Edge>> centroids = new Dictionary<Vector3, List<Edge>>();
 
         //List<Edge> vorEdges = new List<Edge>();
         for (int i = 0; i < triangles.Count; i++) {
@@ -34,12 +34,12 @@ public class Voronoi
                 if (i != j) {
                     if (triangles[i].isAdjacent(triangles[j])) {
                         // then the triangles share an edge
-                        Vector2 cc1 = triangles[i].GetCircumcenter();
-                        Vector2 cc2 = triangles[j].GetCircumcenter();
+                        Vector3 cc1 = triangles[i].GetCircumcenter();
+                        Vector3 cc2 = triangles[j].GetCircumcenter();
 
                         // then the triangles have two points in common, get both of those points
-                        Vector2 point1 = Vector2.zero;
-                        Vector2 point2 = Vector2.zero;
+                        Vector3 point1 = Vector3.zero;
+                        Vector3 point2 = Vector3.zero;
                         GetCommonPoints(triangles[i], triangles[j], ref point1, ref point2);
 
                         if (!onlyWithinBoundary || (onlyWithinBoundary && IsPointWithinBoundary(cc1) && IsPointWithinBoundary(cc2))) {
@@ -64,17 +64,16 @@ public class Voronoi
         }
 
         voronoiCells = new List<VoronoiCell>();
-        foreach (Vector2 key in centroids.Keys) {
-            VoronoiCell newCell = new VoronoiCell(key, centroids[key], drawCenterToPoints);
+        foreach (Vector3 key in centroids.Keys) {
+            VoronoiCell newCell = new VoronoiCell(key, centroids[key]);
             voronoiCells.Add(newCell);
         }
 
         // TODO remove cells that are only connected to one other cell
-        //RemoveLonerCells();
+        // RemoveLonerCells();
         if (removeOpenCells) {
             RemoveOpenCells();
         }
-        
 
         /*foreach (VoronoiCell cell in voronoiCells) {
             foreach (Edge e in cell.boundaryEdges) {
@@ -88,10 +87,10 @@ public class Voronoi
         //}
     }
 
-    private bool IsPointWithinBoundary(Vector2 point) {
+    private bool IsPointWithinBoundary(Vector3 point) {
         bool xOK = (0f <= point.x && point.x <= max_x); 
-        bool yOK = (0f <= point.y && point.y <= max_y); 
-        return (xOK && yOK);
+        bool zOK = (0f <= point.z && point.z <= max_z); 
+        return (xOK && zOK);
     }
 
     private void RemoveLonerCells() {
@@ -123,10 +122,10 @@ public class Voronoi
         Debug.Log("Removed " + counter + " open cells");
     }
 
-    private void GetCommonPoints(Triangle t1, Triangle t2, ref Vector2 point1, ref Vector2 point2) {
+    private void GetCommonPoints(Triangle t1, Triangle t2, ref Vector3 point1, ref Vector3 point2) {
         // t1 and t2 must be adjacent before calling this function
 
-        Debug.Log("GetCommonPoints from\n" + t1 + "\nand\n" + t2);
+        //Debug.Log("GetCommonPoints from\n" + t1 + "\nand\n" + t2);
 
         if (t1.IsPointACorner(t2.pointA)) {
             // then t1 and t2 have t2.pointA in common
@@ -147,7 +146,7 @@ public class Voronoi
             point2 = t2.pointC;
         }
 
-        Debug.Log("Common points are " + point1 + " and " + point2);
+        //Debug.Log("Common points are " + point1 + " and " + point2);
 
     }
 }

@@ -49,7 +49,7 @@ public class TriangulationAlgorithm : MonoBehaviour
 {
     public int pointsNum = 10;
     public float max_x = 5;
-    public float max_y = 5;
+    public float max_z = 5;
     public GameObject spherePrefab;
     
     public bool VERBOSE = false;
@@ -75,16 +75,18 @@ public class TriangulationAlgorithm : MonoBehaviour
     private Voronoi voronoi;
     private int relaxTimes = 0;
 
+    private float _y = 0f;
+
     //private List<Triangle> triangles;
 
     // Start is called before the first frame update
     void Start()
     {
-        randomPoints = new RandomPoints(max_x, max_y);
+        randomPoints = new RandomPoints(max_x, max_z);
         //triangles = new List<Triangle>();
         doRelaxation = false;
         
-        voronoi = new Voronoi(max_x, max_y);
+        voronoi = new Voronoi(max_x, max_z);
     }
 
     // Update is called once per frame
@@ -94,7 +96,7 @@ public class TriangulationAlgorithm : MonoBehaviour
             doTriangulation = false;
 
             // create random points
-            Vector2[] points = randomPoints.CreateRandomPoints(pointsNum, VERBOSE);
+            Vector3[] points = randomPoints.CreateRandomPoints(pointsNum, VERBOSE);
 
             InitTriangulation(points);   
             firstTriangulationDone = true;
@@ -121,13 +123,13 @@ public class TriangulationAlgorithm : MonoBehaviour
 
     void RelaxVoronoi() {
         // instead of random points, use the average of voronoi cell boundary points
-        List<Vector2> points = new List<Vector2>();
+        List<Vector3> points = new List<Vector3>();
         foreach (VoronoiCell voronoiCell in voronoi.voronoiCells) {
             points.Add(voronoiCell.averageCenter);
         }
         // clear the current voronoi
         voronoi = null;
-        voronoi = new Voronoi(max_x, max_y);
+        voronoi = new Voronoi(max_x, max_z);
         // to the triangulation again
         InitTriangulation(points.ToArray());
     }
@@ -135,24 +137,28 @@ public class TriangulationAlgorithm : MonoBehaviour
     void CreateMeshColumns() {
         meshes = new List<GameObject>();
         foreach (VoronoiCell cell in voronoi.voronoiCells) {
-            GameObject obj = Instantiate(ColumnMeshPrefab, cell.center, Quaternion.identity);
-            ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
-            cmg.Init(cell);
-            meshes.Add(obj);
+            int corners = cell.boundaryPoints.Count;
+            Debug.Log("Corners: " + corners);
+            if (corners >= 3) {
+                GameObject obj = Instantiate(ColumnMeshPrefab, cell.center, Quaternion.identity);
+                ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
+                cmg.Init(cell);
+                meshes.Add(obj);
+            }
         }
         Debug.Log("Number of meshes: " + meshes.Count);
     }
 
-    void InitTriangulation(Vector2[] points) {
+    void InitTriangulation(Vector3[] points) {
         
         // create starting points (the big triangle)
-        Vector2[] startPoints = new Vector2[3];
-        startPoints[0] = new Vector2(0f, 0f);
-        startPoints[1] = new Vector2(0f, 2f * max_y);
-        startPoints[2] = new Vector2(2f * max_x, 0f);
+        Vector3[] startPoints = new Vector3[3];
+        startPoints[0] = new Vector3(0f, _y, 0f);
+        startPoints[1] = new Vector3(0f, _y, 2f * max_z);
+        startPoints[2] = new Vector3(2f * max_x, _y, 0f);
 
         // visualize points
-        foreach (Vector2 p in points) {
+        foreach (Vector3 p in points) {
             Instantiate(spherePrefab, p, Quaternion.identity);
         }
         if (!cleanUpBaseTriangle) {
@@ -170,8 +176,8 @@ public class TriangulationAlgorithm : MonoBehaviour
         triangles.Add(firstTriangle);
 
         // add a new point to an existing triangulation
-        List<Vector2> tmpPoints = new List<Vector2>();
-        foreach (Vector2 p in points) {
+        List<Vector3> tmpPoints = new List<Vector3>();
+        foreach (Vector3 p in points) {
             if (VERBOSE) Debug.Log("ADD NEW POINT --------------- " + p);
             Triangulation(ref triangles, p);
 
@@ -192,7 +198,7 @@ public class TriangulationAlgorithm : MonoBehaviour
 
         if (invalids == 0) {
             // compute VoronoiDiagram TODO do in another class
-            voronoi.ComputeVoronoi(triangles, points, onlyUseVoronoiWithinBoundaries, removeOpenVoronoiCells, drawVoronoiCenterEdges);
+            voronoi.ComputeVoronoi(triangles, points, onlyUseVoronoiWithinBoundaries, removeOpenVoronoiCells);
         }
 
         // cleanup 
@@ -216,9 +222,19 @@ public class TriangulationAlgorithm : MonoBehaviour
             }
         }
 
+        if (drawVoronoiCenterEdges) {
+            // draw lines from center to all points
+            foreach (VoronoiCell cell in voronoi.voronoiCells) {
+                foreach (Vector3 p in cell.boundaryPoints) {
+                    Edge newEdge = new Edge(cell.center, p);
+                    newEdge.DrawEdgeColored(Color.green);
+                }
+            }
+        }
+
     }
 
-    void Triangulation(ref List<Triangle> triangles, Vector2 newPoint) {
+    void Triangulation(ref List<Triangle> triangles, Vector3 newPoint) {
         List<Triangle> badTriangles = new List<Triangle>();
         List<Edge> polygonHole = new List<Edge>(); 
 
@@ -231,7 +247,7 @@ public class TriangulationAlgorithm : MonoBehaviour
         RemoveDuplicateTriangles(ref triangles);  // TODO should not be needed
     }
 
-    void FindInvalidatedTriangles(ref List<Triangle> triangles, Vector2 newPoint, 
+    void FindInvalidatedTriangles(ref List<Triangle> triangles, Vector3 newPoint, 
                                   ref List<Triangle> badTriangles, ref List<Edge> polygonHole) {
         
         if (VERBOSE) Debug.Log("(before) badtriangles: " + badTriangles.Count);
@@ -255,9 +271,9 @@ public class TriangulationAlgorithm : MonoBehaviour
         if (VERBOSE) Debug.Log("(after) polygonHole: " + polygonHole.Count);
     }
 
-    int CountInvalidTriangles(List<Triangle> triangles, Vector2[] points, bool findFirst=true) {
+    int CountInvalidTriangles(List<Triangle> triangles, Vector3[] points, bool findFirst=true) {
         int counter = 0;
-        foreach (Vector2 p in points) {
+        foreach (Vector3 p in points) {
             foreach(Triangle t in triangles) {
                 if (t.IsPointInsideCircumcircle(p) && !t.IsPointACorner(p)) {
                     if (VERBOSE) Debug.Log(" - Found invalid. Point " + p + " : \n" + t.ToString());
@@ -286,9 +302,9 @@ public class TriangulationAlgorithm : MonoBehaviour
         // sort
         if (VERBOSE) Debug.Log("polygonHole unsorted: " + polygonHole.Count);
         if (VERBOSE) { foreach (Edge e in polygonHole) Debug.Log(e.ToString()); }
-        polygonHole.Sort((e1, e2) => e1.pointB.y.CompareTo(e2.pointB.y));
+        polygonHole.Sort((e1, e2) => e1.pointB.z.CompareTo(e2.pointB.z));
         polygonHole.Sort((e1, e2) => e1.pointB.x.CompareTo(e2.pointB.x));
-        polygonHole.Sort((e1, e2) => e1.pointA.y.CompareTo(e2.pointA.y));
+        polygonHole.Sort((e1, e2) => e1.pointA.z.CompareTo(e2.pointA.z));
         polygonHole.Sort((e1, e2) => e1.pointA.x.CompareTo(e2.pointA.x));
         if (VERBOSE) Debug.Log("polygonHole sorted: " + polygonHole.Count);
         if (VERBOSE) { foreach (Edge e in polygonHole) Debug.Log(e.ToString()); }
@@ -349,11 +365,11 @@ public class TriangulationAlgorithm : MonoBehaviour
         if (VERBOSE) { foreach (Triangle t in triangles) Debug.Log(t.ToString()); }
     }
 
-    void FillInPolygonHole(ref List<Triangle> triangles, Vector2 newPoint, ref List<Edge> polygonHole) {
+    void FillInPolygonHole(ref List<Triangle> triangles, Vector3 newPoint, ref List<Edge> polygonHole) {
         if (VERBOSE) Debug.Log("polygonHole size: " + polygonHole.Count);
         foreach (Edge edge in polygonHole) {
-            Vector2 v1 = edge.pointA;
-            Vector2 v2 = edge.pointB;
+            Vector3 v1 = edge.pointA;
+            Vector3 v2 = edge.pointB;
             //Triangle t = new Triangle(edge, new Edge(newPoint, v1), new Edge(newPoint, v2));  // orig
             Triangle t = new Triangle(edge, new Edge(v2, newPoint), new Edge(newPoint, v1));
             if (VERBOSE) Debug.Log("New triangle circumcenter: " + t.GetCircumcenter());
@@ -392,7 +408,7 @@ public class TriangulationAlgorithm : MonoBehaviour
         }
     }
 
-    private void Cleanup(ref List<Triangle> triangles, Vector2[] startPoints) {
+    private void Cleanup(ref List<Triangle> triangles, Vector3[] startPoints) {
         // remove all triangles that contain points from the base triangle
         //if (VERBOSE)
         Debug.Log("CLEANUP (before) triangles: " + triangles.Count);

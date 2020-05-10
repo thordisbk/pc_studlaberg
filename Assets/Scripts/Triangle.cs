@@ -4,17 +4,19 @@ using UnityEngine;
 
 public class Triangle 
 {
-    public Vector2 pointA;
-    public Vector2 pointB;
-    public Vector2 pointC;
+    public Vector3 pointA;
+    public Vector3 pointB;
+    public Vector3 pointC;
 
     public Edge edgeAB;
     public Edge edgeBC;
     public Edge edgeCA;
 
-    private Vector2 circumcenter;
+    private Vector3 circumcenter;
     private float radiusSquared;
     private float radius;
+
+    private float _y = 0f;
 
     public Triangle(Edge e1, Edge e2, Edge e3) {
         pointA = e1.pointA;
@@ -30,12 +32,12 @@ public class Triangle
         FindCircumcircle();
     }
 
-    public Vector2 GetCircumcenter() {
+    public Vector3 GetCircumcenter() {
         return circumcenter;
     }
 
-    private bool MakeCounterClockwise(Vector2 point1, Vector2 point2, Vector2 point3) {
-        float result = (point2.x - point1.x) * (point3.y - point1.y) - (point3.x - point1.x) * (point2.y - point1.y);
+    private bool MakeCounterClockwise(Vector3 point1, Vector3 point2, Vector3 point3) {
+        float result = (point2.x - point1.x) * (point3.z - point1.z) - (point3.x - point1.x) * (point2.z - point1.z);
         if (result > 0) {
             // then points are CCW and nothing needs to be done
             return true;
@@ -43,7 +45,7 @@ public class Triangle
         else {
             // then points are not CCW and points B and C should be switched
             //Debug.Log("Make CCW");
-            Vector2 tmp = pointB;
+            Vector3 tmp = pointB;
             pointB = pointC;
             pointC = tmp;
 
@@ -61,35 +63,35 @@ public class Triangle
         var p0 = pointA;
         var p1 = pointB;
         var p2 = pointC;
-        var dA = p0.x * p0.x + p0.y * p0.y;
-        var dB = p1.x * p1.x + p1.y * p1.y;
-        var dC = p2.x * p2.x + p2.y * p2.y;
+        var dA = p0.x * p0.x + p0.z * p0.z;
+        var dB = p1.x * p1.x + p1.z * p1.z;
+        var dC = p2.x * p2.x + p2.z * p2.z;
 
-        var aux1 = (dA * (p2.y - p1.y) + dB * (p0.y - p2.y) + dC * (p1.y - p0.y));
+        var aux1 = (dA * (p2.z - p1.z) + dB * (p0.z - p2.z) + dC * (p1.z - p0.z));
         var aux2 = -(dA * (p2.x - p1.x) + dB * (p0.x - p2.x) + dC * (p1.x - p0.x));
-        var div = (2 * (p0.x * (p2.y - p1.y) + p1.x * (p0.y - p2.y) + p2.x * (p1.y - p0.y)));
+        var div = (2 * (p0.x * (p2.z - p1.z) + p1.x * (p0.z - p2.z) + p2.x * (p1.z - p0.z)));
 
         if (div == 0) {
             Debug.LogError("Divide by zero!");
         }
 
-        //var center = new Vector2(aux1 / div, aux2 / div);
+        //var center = new Vector3(aux1 / div, _y, aux2 / div);
         //circumcenter = center;
-        circumcenter = new Vector2(aux1 / div, aux2 / div);
+        circumcenter = new Vector3(aux1 / div, _y, aux2 / div);
         // Debug.Log("circumcenter: " + circumcenter);
-        //radiusSquared = (center.x - p0.x) * (center.x - p0.x) + (center.y - p0.y) * (center.y - p0.y);
+        //radiusSquared = (center.x - p0.x) * (center.x - p0.x) + (center.z - p0.z) * (center.z - p0.z);
         radius = (circumcenter - p0).magnitude;
     }
 
-    public bool IsPointInsideCircumcircle(Vector2 point) {
-        //var d_squared = (point.x - circumcenter.x) * (point.x - circumcenter.x) + (point.y - circumcenter.y) * (point.y - circumcenter.y);
+    public bool IsPointInsideCircumcircle(Vector3 point) {
+        //var d_squared = (point.x - circumcenter.x) * (point.x - circumcenter.x) + (point.z - circumcenter.z) * (point.z - circumcenter.z);
         //return d_squared < radiusSquared;
         float dist = (circumcenter - point).magnitude;
         if (dist < radius) return true;
         else return false;
     }
 
-    public bool IsPointACorner(Vector2 point) {
+    public bool IsPointACorner(Vector3 point) {
         // returns true if point is part of the Triangles 3 vertices
         return (point == pointA || point == pointB || point == pointC);
     }

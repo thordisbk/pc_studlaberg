@@ -5,13 +5,13 @@ using System.Linq;
 
 public class ColumnMeshGenerator : MonoBehaviour
 {
-    List<Vector2> points;
+    List<Vector3> points;
 
     Mesh mesh;
     Vector3[] vertices;
     int[] triangles;
 
-    private float z = 0f;
+    private float _z = 0f;
     private float columnLength = 5f;
 
     // this function must be called on creation
@@ -20,7 +20,7 @@ public class ColumnMeshGenerator : MonoBehaviour
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
 
-        points = new List<Vector2>();
+        points = new List<Vector3>();
         points.Add(cell.center);
         for (int i = 0; i < cell.boundaryPoints.Count; i++) {
             points.Add(cell.boundaryPoints[i]);
@@ -63,7 +63,7 @@ public class ColumnMeshGenerator : MonoBehaviour
         }
 
         Vector3[] vertices_ = new Vector3[v];
-        Debug.Log("Number of vertices: " + v);
+        //Debug.Log("Number of vertices: " + v);
 
         // split the vertices to have hard edges between surfaces
         Vector3[] verticesTemp = new Vector3[pl*2];
@@ -74,7 +74,7 @@ public class ColumnMeshGenerator : MonoBehaviour
             // for the bottom of the column
             Vector3 p = new Vector3(points[i].x, 
                                     points[i].y - columnLength, 
-                                    z);
+                                    _z);
             verticesTemp[i+pl] = p;
         }
 

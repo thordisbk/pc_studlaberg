@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class Edge 
 {
-    public Vector2 pointA;
-    public Vector2 pointB;
+    public Vector3 pointA;
+    public Vector3 pointB;
 
     private float duration = 5000f;
 
     public float Length;
 
-    public Edge(Vector2 pA, Vector2 pB) {
+    public Edge(Vector3 pA, Vector3 pB) {
         pointA = pA;
         pointB = pB;
 
@@ -28,7 +28,7 @@ public class Edge
 
     public void FlipEdge() {
         // flip the edge around by swapping its vertices
-        Vector2 temp = pointA;
+        Vector3 temp = pointA;
         pointA = pointB;
         pointB = temp;
     }

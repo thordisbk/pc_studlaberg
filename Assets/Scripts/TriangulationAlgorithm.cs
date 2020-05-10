@@ -51,9 +51,7 @@ public class TriangulationAlgorithm : MonoBehaviour
     public float max_x = 5;
     public float max_y = 5;
     public GameObject spherePrefab;
-
-    private RandomPoints randomPoints;
-
+    
     public bool VERBOSE = false;
     public bool doTriangulation = false;
     public bool doRelaxation = false;
@@ -66,7 +64,13 @@ public class TriangulationAlgorithm : MonoBehaviour
     public bool removeOpenVoronoiCells = true;
     public bool drawVoronoiCenterEdges = false;
     public bool showVoronoi = true;
+    [Header("Columns")]
+    public GameObject ColumnMeshPrefab;
+    public bool createMesh = false;
+    private bool meshesCreated = false;
+    private List<GameObject> meshes;
 
+    private RandomPoints randomPoints;
     private bool firstTriangulationDone = false;
     private Voronoi voronoi;
     private int relaxTimes = 0;
@@ -107,6 +111,12 @@ public class TriangulationAlgorithm : MonoBehaviour
             }
             doRelaxation = false;
         }
+
+        if (createMesh && !meshesCreated && firstTriangulationDone) {
+            createMesh = false;
+            CreateMeshColumns();
+            meshesCreated = true;
+        }
     }
 
     void RelaxVoronoi() {
@@ -120,6 +130,17 @@ public class TriangulationAlgorithm : MonoBehaviour
         voronoi = new Voronoi(max_x, max_y);
         // to the triangulation again
         InitTriangulation(points.ToArray());
+    }
+
+    void CreateMeshColumns() {
+        meshes = new List<GameObject>();
+        foreach (VoronoiCell cell in voronoi.voronoiCells) {
+            GameObject obj = Instantiate(ColumnMeshPrefab, cell.center, Quaternion.identity);
+            ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
+            cmg.Init(cell);
+            meshes.Add(obj);
+        }
+        Debug.Log("Number of meshes: " + meshes.Count);
     }
 
     void InitTriangulation(Vector2[] points) {
@@ -389,6 +410,6 @@ public class TriangulationAlgorithm : MonoBehaviour
         
 
     void OnDrawGizmos() {
-
+        // TODO
     }
 }

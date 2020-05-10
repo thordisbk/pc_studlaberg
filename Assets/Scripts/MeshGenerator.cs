@@ -101,11 +101,12 @@ public class MeshGenerator : MonoBehaviour
             vertices = verticesTemp.Concat(verticesTemp).Concat(verticesTemp).ToArray();
         }
 
-        if (corners == 4) CreateSquarePrism();
+        CreatePrism(corners);
+        /*if (corners == 4) CreateSquarePrism();
         if (corners == 5) CreatePentagonalPrism();
         if (corners == 6) CreateHexagonalPrism();
         if (corners == 7) CreateHeptagonalPrism();
-        if (corners == 8) CreateOctagonalPrism();
+        if (corners == 8) CreateOctagonalPrism();*/
     }
 
     void UpdateMesh() {
@@ -124,6 +125,79 @@ public class MeshGenerator : MonoBehaviour
             normals[i] = rotation * normals[i];
         // assign the array of normals to the mesh
         mesh.normals = normals;*/
+    }
+
+    void CreatePrism(int corners, bool bottomMesh=false) {
+        if (corners < 3) {
+            Debug.LogError("CreatePrism(): minimum corner number is 3");
+            return;
+        }
+        int a = points.Length;  // corners + 1 (the center)
+
+        // for a vertex x, three faces of the prism can use it
+        //  points from which split to use (1st, 2nd, 3rd, or 4th)
+        int _0 = 0 * points.Length*2;  // x+_0 for the first triangle-face that uses it
+        int _1 = 1 * points.Length*2;  // x+_1 for the second triangle-face that uses it
+        int _2 = 2 * points.Length*2;  // x+_2 for the third triangle-face that uses it
+        int _3 = 3 * points.Length*2;  // x+_3 for the third/fourth triangle-face that uses it
+                                       //  (needed when there is an odd number of corners)
+        
+        // create a list which the vertices get added to, then convert that to an array
+        
+        // first top shape mesh (triangle, square, pentagon, hexagon, heptagon, octagon, ...)
+        // _0 == 0 so no need to add it
+        List<int> trianglesList = new List<int>();
+        for (int i = 1; i < corners; i++) {
+            trianglesList.Add(0);
+            trianglesList.Add(i);
+            trianglesList.Add(i+1);
+        }
+        trianglesList.Add(0);
+        trianglesList.Add(corners);
+        trianglesList.Add(1);
+
+        // the sides mesh (in a CW form)
+        int split;
+        for (int i = 1; i < corners; i++) {
+            // use split_1 if i is odd, else use split_2
+            split = _1;
+            if (i % 2 == 0) {
+                split = _2;
+            }
+            trianglesList.Add(i+split);
+            trianglesList.Add(i+a+split);
+            trianglesList.Add((i+1)+split);
+            trianglesList.Add((i+1)+split);
+            trianglesList.Add(i+a+split);
+            trianglesList.Add((i+1)+a+split);
+        }
+        // if the number of corners is even, use split_2, else use split_3
+        split = _2;
+        if (corners % 2 == 1) {
+            split = _3;
+        }
+        trianglesList.Add(corners+split);
+        trianglesList.Add(corners+a+split);
+        trianglesList.Add(1+split);
+        trianglesList.Add(1+split);
+        trianglesList.Add(corners+a+split);
+        trianglesList.Add(1+a+split);
+
+        // the bottom shape mesh
+        // _0 == 0 so no need to add
+        if (bottomMesh) {
+            for (int i = 1; i < corners; i++) {
+                trianglesList.Add(0+a);
+                trianglesList.Add((i+1)+a);
+                trianglesList.Add(i+a);
+            }
+            trianglesList.Add(0+a);
+            trianglesList.Add(1+a);
+            trianglesList.Add(corners+a);
+        }
+
+        // convert list to array
+        triangles = trianglesList.ToArray();
     }
 
     void CreateOctagonalPrism() {

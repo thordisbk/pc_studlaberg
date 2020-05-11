@@ -32,7 +32,7 @@ public class MeshGenerator : MonoBehaviour
             // Debug.Log(points[i].gameObject.name);
         }
         // foreach(Transform child in shapePoints) {}
-        Debug.Log("Shape: " + shapePoints.name);
+        // Debug.Log("Shape: " + shapePoints.name);
 
         // so mesh wont be updated twice at start 
         foreach (Transform t in points) {
@@ -47,7 +47,7 @@ public class MeshGenerator : MonoBehaviour
             if (p.position.y > maxY) maxY = p.position.y;
             if (p.position.z > maxZ) maxZ = p.position.z;
         }
-        Debug.Log("MaxX: " + maxX + " MaxY: " + maxY + " MaxZ: " + maxZ);
+        // Debug.Log("MaxX: " + maxX + " MaxY: " + maxY + " MaxZ: " + maxZ);
 
         CreateShape();
         FindUVs();
@@ -59,7 +59,7 @@ public class MeshGenerator : MonoBehaviour
     {
         foreach (Transform t in points) {
             if (t.hasChanged) {
-                Debug.Log("Update mesh");
+                // Debug.Log("Update mesh");
                 CreateShape();
                 UpdateMesh();
                 t.hasChanged = false;
@@ -97,7 +97,7 @@ public class MeshGenerator : MonoBehaviour
 
         vertices = new Vector3[v];
         uv = new Vector2[v];
-        print("Number of vertices: " + v);
+        // print("Number of vertices: " + v);
 
         // split the vertices to have hard edges between surfaces
         Vector3[] verticesTemp = new Vector3[pl*2];

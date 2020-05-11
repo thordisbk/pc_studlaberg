@@ -9,26 +9,18 @@ public class Voronoi
 
     public List<VoronoiCell> voronoiCells;
 
+    private bool doneComputing = false;
+
     public Voronoi(float maxX, float maxZ) {
         max_x = maxX;
         max_z = maxZ;
     }
 
-    public void ComputeVoronoi(List<Triangle> triangles, Vector3[] points, bool onlyWithinBoundary=true, bool removeOpenCells=true) {
-        // find distinct edges
-        /*List<Edge> edges;
-
-        foreach (Edge edge in edges) {
-            bool hasTriangleOnBothSides = false;
-            if (hasTriangleOnBothSides) {
-
-            }
-        }*/
+    public void ComputeVoronoi(List<Triangle> triangles, Vector3[] points) {
 
         // centroids and their boundaries
         Dictionary<Vector3, List<Edge>> centroids = new Dictionary<Vector3, List<Edge>>();
 
-        //List<Edge> vorEdges = new List<Edge>();
         for (int i = 0; i < triangles.Count; i++) {
             for (int j = 0; j < triangles.Count; j++) {
                 if (i != j) {
@@ -37,59 +29,77 @@ public class Voronoi
                         Vector3 cc1 = triangles[i].GetCircumcenter();
                         Vector3 cc2 = triangles[j].GetCircumcenter();
 
+                        bool cc1WB = IsPointWithinBoundary(cc1);
+                        bool cc2WB = IsPointWithinBoundary(cc2);
+
                         // then the triangles have two points in common, get both of those points
                         Vector3 point1 = Vector3.zero;
                         Vector3 point2 = Vector3.zero;
                         GetCommonPoints(triangles[i], triangles[j], ref point1, ref point2);
 
-                        //if (!onlyWithinBoundary || (onlyWithinBoundary && IsPointWithinBoundary(cc1) && IsPointWithinBoundary(cc2))) {
-                            // including those from outside the boundary will look strange and is best avoided
-                            Edge newEdge = new Edge(cc1, cc2);
-                            //vorEdges.Add(newEdge);
+                        Edge newEdge = new Edge(cc1, cc2);
 
-                            // add cc1 to the dictionary
-                            if (!centroids.ContainsKey(point1)) {
-                                centroids.Add(point1, new List<Edge>());
-                            }
-                            centroids[point1].Add(newEdge);
-                            // add cc2 to the dictionary
-                            if (!centroids.ContainsKey(point2)) {
-                                centroids.Add(point2, new List<Edge>());
-                            }
-                            centroids[point2].Add(newEdge);
-                        //}
+                        // add cc1 to the dictionary
+                        if (!centroids.ContainsKey(point1)) {
+                            centroids.Add(point1, new List<Edge>());
+                        }
+                        centroids[point1].Add(newEdge);
+
+                        // add cc2 to the dictionary
+                        if (!centroids.ContainsKey(point2)) {
+                            centroids.Add(point2, new List<Edge>());
+                        }
+                        centroids[point2].Add(newEdge);
+
+                        // TODO implement edge cutting at boundary
+                        /*if (cc1WB && cc2WB) {
+                            // use the edge between these two
+                        }
+                        else if (cc1WB && !cc2WB) {
+                            // clip edge to end at boundary
+                        }
+                        else if (!cc1WB && cc2WB) {
+                            // clip edge to end at boundary
+                        }
+                        else {  // if (!cc1WB && !cc2WB) {
+                            // ignore edges outside of boundary
+                        }*/
+
                     }
                 }
             }
         }
 
+        // construct the actual cells as objects
         voronoiCells = new List<VoronoiCell>();
         foreach (Vector3 key in centroids.Keys) {
             VoronoiCell newCell = new VoronoiCell(key, centroids[key]);
             voronoiCells.Add(newCell);
         }
 
+        doneComputing = true;
+    }
+
+    public void Cleanup(bool onlyWithinBoundary=true, bool removeOpenCells=true, bool removeLoners=false) {
+
+        if (!doneComputing) {
+            Debug.LogError("call ComputeVoronoi() before Cleanup()");
+            return;
+        }
+
         if (onlyWithinBoundary) {
-            // TODO remove cells that have boundaryPoints outside the main boundary
+            // remove cells that have boundaryPoints outside the main boundary
             RemoveOutOfBoundsCells();
         }
 
-        // TODO remove cells that are only connected to one other cell
-        // RemoveLonerCells();
         if (removeOpenCells) {
             RemoveOpenCells();
         }
 
-        /*foreach (VoronoiCell cell in voronoiCells) {
-            foreach (Edge e in cell.boundaryEdges) {
-                //vorEdges.Add(e);
-                e.DrawEdgeColored(Color.red);
-            }
-        }*/
-
-        //foreach (Edge e in vorEdges) {
-        //    e.DrawEdgeColored(Color.red);
-        //}
+        // remove cells that are only connected to one other cell
+        if (removeLoners) {
+            RemoveLonerCells();
+        }
     }
 
     private bool IsPointWithinBoundary(Vector3 point) {

@@ -30,13 +30,13 @@ public class TriangulationAlgorithm : MonoBehaviour
     private List<Triangle> triangles;
 
     [Header("Voronoi")]
-    public bool onlyUseVoronoiWithinBoundaries = true;
-    public bool removeOpenVoronoiCells = true;
-    public bool removeLonerVoronoiCells = false;
     public bool showVoronoiCenterEdges = false;
     public bool showVoronoi = true;
-    public bool showVoronoiOnlyWithinBounds = true;
     public bool showVoronoiCenters = true;
+    public bool showVoronoiOnlyWithinBounds = true;
+    private bool onlyUseVoronoiWithinBoundaries = false;
+    private bool removeOpenVoronoiCells = false;
+    private bool removeLonerVoronoiCells = false;
     public bool doVoronoi = false;
     private Voronoi voronoi;
     private bool firstVoronoiDone = false;

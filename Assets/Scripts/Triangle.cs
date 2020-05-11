@@ -27,6 +27,16 @@ public class Triangle
         edgeBC = e2;
         edgeCA = e3;
 
+        //if (edgeAB.isSame(edgeBC) || edgeAB.isSame(edgeCA) || edgeBC.isSame(edgeCA)) {
+        if (pointA == pointB || pointB == pointC || pointC == pointA) {
+            Debug.LogError("Same edge added twice to triangle!");
+            //Debug.Log("pointA: " + pointA + " pointB: " + pointB + " pointC: " + pointC);
+            // Debug.Log(" e1: " + e1.ToString() + " e2: " +e2.ToString() + " e3: " +e3.ToString());
+            //edgeAB.DrawEdgeColored(Color.yellow);
+            //edgeBC.DrawEdgeColored(Color.magenta);
+            //edgeCA.DrawEdgeColored(Color.cyan);
+        }
+
         bool isCCW = MakeCounterClockwise(pointA, pointB, pointC);
 
         FindCircumcircle();

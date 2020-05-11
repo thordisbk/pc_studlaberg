@@ -90,6 +90,39 @@ public class Voronoi
         doneComputing = true;
     }
 
+    private bool IsPointWithinBoundary(Vector3 point) {
+        bool xOK = (0f <= point.x && point.x <= max_x); 
+        bool zOK = (0f <= point.z && point.z <= max_z); 
+        return (xOK && zOK);
+    }
+
+    private void GetCommonPoints(Triangle t1, Triangle t2, ref Vector3 point1, ref Vector3 point2) {
+        // t1 and t2 must be adjacent before calling this function
+
+        //Debug.Log("GetCommonPoints from\n" + t1 + "\nand\n" + t2);
+
+        if (t1.IsPointACorner(t2.pointA)) {
+            // then t1 and t2 have t2.pointA in common
+            if (t1.IsPointACorner(t2.pointB)) {
+                // then t1 and t2 have t2.pointA and t2.pointB in common
+                point1 = t2.pointA;
+                point2 = t2.pointB;
+            }
+            else {
+                // then t1 and t2 have t2.pointA and t2.pointC in common
+                point1 = t2.pointA;
+                point2 = t2.pointC;
+            }
+        }
+        else {
+            // then t1 and t2 have points t2.pointB and t2.pointC in common
+            point1 = t2.pointB;
+            point2 = t2.pointC;
+        }
+
+        //Debug.Log("Common points are " + point1 + " and " + point2);
+    }
+
     public void Cleanup(bool onlyWithinBoundary=true, bool removeOpenCells=true, bool removeLoners=false) {
 
         if (!doneComputing) {
@@ -111,13 +144,7 @@ public class Voronoi
             RemoveLonerCells();
         }
     }
-
-    private bool IsPointWithinBoundary(Vector3 point) {
-        bool xOK = (0f <= point.x && point.x <= max_x); 
-        bool zOK = (0f <= point.z && point.z <= max_z); 
-        return (xOK && zOK);
-    }
-
+    
     private void RemoveOutOfBoundsCells() {
         int counter = 0;
         for (int i = voronoiCells.Count - 1; i >= 0; i--) {
@@ -162,33 +189,5 @@ public class Voronoi
             }
         }
         Debug.Log("Removed " + counter + " open cells");
-    }
-
-    private void GetCommonPoints(Triangle t1, Triangle t2, ref Vector3 point1, ref Vector3 point2) {
-        // t1 and t2 must be adjacent before calling this function
-
-        //Debug.Log("GetCommonPoints from\n" + t1 + "\nand\n" + t2);
-
-        if (t1.IsPointACorner(t2.pointA)) {
-            // then t1 and t2 have t2.pointA in common
-            if (t1.IsPointACorner(t2.pointB)) {
-                // then t1 and t2 have t2.pointA and t2.pointB in common
-                point1 = t2.pointA;
-                point2 = t2.pointB;
-            }
-            else {
-                // then t1 and t2 have t2.pointA and t2.pointC in common
-                point1 = t2.pointA;
-                point2 = t2.pointC;
-            }
-        }
-        else {
-            // then t1 and t2 have points t2.pointB and t2.pointC in common
-            point1 = t2.pointB;
-            point2 = t2.pointC;
-        }
-
-        //Debug.Log("Common points are " + point1 + " and " + point2);
-
     }
 }

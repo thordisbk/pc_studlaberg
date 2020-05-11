@@ -32,6 +32,13 @@ public class ColumnMeshGenerator : MonoBehaviour
             points.Add(cell.boundaryPoints[i]);
         }
 
+        // currently the object is positioned at (0,0,0) for the points get mapped to their correct place
+        //  since Manager is set at (0,0,0)
+        // therefore the cell.center (where the object is instantiated) must be subtracted from all points
+        for (int i = 0; i < points.Count; i++) {
+            points[i] = points[i] - cell.center;
+        }
+
         CreateShape();
         UpdateMesh();
 
@@ -123,16 +130,12 @@ public class ColumnMeshGenerator : MonoBehaviour
         Vector2[] uvTemp = new Vector2[pl*2];
         for (int i = 0; i < pl; i++) {
             // for the top of the column
-            //if (i > 0) uvTemp[i] = new Vector2(0f, 0f);
-            //else uvTemp[i] = new Vector2(0.5f, 0.5f);
             if (i == 0) uvTemp[i] = new Vector2(0.5f, 0.5f);
             else if (i % 2 == 0) uvTemp[i] = new Vector2(0f, 0f);
             else if (corners % 2 == 1 && i == pl-1) uvTemp[i] = new Vector2(1f, 0f);
             else uvTemp[i] = new Vector2(0f, 1f);
 
             // for the bottom of the column
-            //if (i > 0) uvTemp[i+pl] = new Vector2(0f, 0f);
-            //else uvTemp[i+pl] = new Vector2(0.5f, 0.5f);
             if (i == 0) uvTemp[i+pl] = new Vector2(0.5f, 0.5f);
             else if (i % 2 == 0) uvTemp[i+pl] = new Vector2(1f, 0f);
             else if (corners % 2 == 1 && i == pl-1) uvTemp[i+pl] = new Vector2(0f, 1f);
@@ -143,11 +146,11 @@ public class ColumnMeshGenerator : MonoBehaviour
         Vector2[] uvTempS = new Vector2[pl*2];
         for (int i = 0; i < pl; i++) {
 
-            if (i % 2 == 0) uvTempS[i] = new Vector2(0f, 0f);
-            else uvTempS[i] = new Vector2(0f, 1f);
+            if (i % 2 == 0) uvTempS[i] = new Vector2(0f, 1f);
+            else uvTempS[i] = new Vector2(1f, 1f);
 
-            if (i % 2 == 0) uvTempS[i+pl] = new Vector2(1f, 0f);
-            else uvTempS[i+pl] = new Vector2(1f, 1f);
+            if (i % 2 == 0) uvTempS[i+pl] = new Vector2(0f, 0f);
+            else uvTempS[i+pl] = new Vector2(1f, 0f);
         }
         // for the last odd size FIXME (doesn't quite work)
         //Vector2[] uvTempL = new Vector2[pl*2];
@@ -175,7 +178,7 @@ public class ColumnMeshGenerator : MonoBehaviour
         int split_1 = 1 * points.Count*2;  // x+_1 for the second triangle-face that uses it
         int split_2 = 2 * points.Count*2;  // x+_2 for the third triangle-face that uses it
         int split_3 = 3 * points.Count*2;  // x+_3 for the third/fourth triangle-face that uses it
-                                       //  (needed when there is an odd number of corners)
+                                           //  (needed when there is an odd number of corners)
         
         // create a list which the vertices get added to, then convert that to an array
         
@@ -192,6 +195,7 @@ public class ColumnMeshGenerator : MonoBehaviour
         trianglesList.Add(1);
 
         // the sides mesh (in a CW form)
+        // all except the last side
         int split;
         for (int i = 1; i < corners; i++) {
             // use split_1 if i is odd, else use split_2
@@ -207,6 +211,7 @@ public class ColumnMeshGenerator : MonoBehaviour
             trianglesList.Add((i+1)+a+split);
         }
         // if the number of corners is even, use split_2, else use split_3
+        // the last side
         split = split_2;
         if (corners % 2 == 1) {
             split = split_3;

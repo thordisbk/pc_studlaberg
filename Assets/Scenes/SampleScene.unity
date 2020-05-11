@@ -382,24 +382,25 @@ MonoBehaviour:
   VERBOSE: 0
   spherePrefab: {fileID: 7109934805902325103, guid: 17c1b0d87fee442428ff485443d25aba,
     type: 3}
-  pointsNum: 50
+  pointsNum: 100
   max_x: 10
   max_z: 10
   validateAfterEveryPoint: 0
   showTriangulation: 1
-  doTriangulation: 1
+  doTriangulation: 0
   onlyUseVoronoiWithinBoundaries: 0
   removeOpenVoronoiCells: 0
   removeLonerVoronoiCells: 0
   showVoronoiCenterEdges: 0
-  showVoronoi: 1
+  showVoronoi: 0
+  showVoronoiOnlyWithinBounds: 1
   showVoronoiCenters: 1
   doVoronoi: 0
   doRelaxation: 0
   ColumnMeshPrefab: {fileID: 6800096512831227748, guid: 5336f9561ac6efe4aaff24c6a655b44d,
     type: 3}
-  createMesh: 0
   createBottomFace: 1
+  doMesh: 0
 --- !u!4 &195512905
 Transform:
   m_ObjectHideFlags: 0

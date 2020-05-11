@@ -35,6 +35,7 @@ public class TriangulationAlgorithm : MonoBehaviour
     public bool removeLonerVoronoiCells = false;
     public bool showVoronoiCenterEdges = false;
     public bool showVoronoi = true;
+    public bool showVoronoiOnlyWithinBounds = true;
     public bool showVoronoiCenters = true;
     public bool doVoronoi = false;
     private Voronoi voronoi;
@@ -46,10 +47,10 @@ public class TriangulationAlgorithm : MonoBehaviour
 
     [Header("Columns")]
     public GameObject ColumnMeshPrefab;
-    public bool createMesh = false;
     private bool meshesCreated = false;
     private List<GameObject> meshes;
     public bool createBottomFace = true;
+    public bool doMesh = false;
 
 
     // Start is called before the first frame update
@@ -104,8 +105,8 @@ public class TriangulationAlgorithm : MonoBehaviour
             }
         }
 
-        if (createMesh) {
-            createMesh = false;
+        if (doMesh) {
+            doMesh = false;
             if (!meshesCreated && firstVoronoiDone) {
                 CreateMeshColumns();
                 meshesCreated = true;
@@ -125,9 +126,13 @@ public class TriangulationAlgorithm : MonoBehaviour
         
         List<Vector3> pointsNew = new List<Vector3>();
         foreach (VoronoiCell voronoiCell in voronoi.voronoiCells) {
-            // only use the centers that are iwtin the initial boundary
+            // if average center is within initial boundary, use that
+            // else use the previous random center
             if (IsPointWithinBoundary(voronoiCell.averageCenter)) {
                 pointsNew.Add(voronoiCell.averageCenter);
+            }
+            else {
+                pointsNew.Add(voronoiCell.center);
             }
         }
 
@@ -145,16 +150,18 @@ public class TriangulationAlgorithm : MonoBehaviour
     void CreateMeshColumns() {
         meshes = new List<GameObject>();
         foreach (VoronoiCell cell in voronoi.voronoiCells) {
-            int corners = cell.boundaryPoints.Count;
-            Debug.Log("Corners: " + corners);
-            if (corners >= 3) {
-                GameObject obj = Instantiate(ColumnMeshPrefab, Vector3.zero, Quaternion.identity);
-                ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
-                cmg.Init(cell, createBottomFace);
-                meshes.Add(obj);
+            if (cell.isValid) {
+                int corners = cell.boundaryPoints.Count;
+                if (VERBOSE) Debug.Log("Corners: " + corners);
+                if (corners >= 3) {
+                    GameObject obj = Instantiate(ColumnMeshPrefab, Vector3.zero, Quaternion.identity);
+                    ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
+                    cmg.Init(cell, createBottomFace);
+                    meshes.Add(obj);
+                }
             }
         }
-        Debug.Log("Number of meshes: " + meshes.Count);
+        if (VERBOSE) Debug.Log("Number of meshes: " + meshes.Count);
     }
 
     void ComputeTriangulation() {
@@ -441,6 +448,19 @@ public class TriangulationAlgorithm : MonoBehaviour
                     Gizmos.color = Color.red;
                     Gizmos.DrawLine(e.pointA, e.pointB);
                 }
+            }
+        }
+
+        if (voronoi != null && showVoronoiOnlyWithinBounds) {
+            foreach (VoronoiCell cell in voronoi.voronoiCells) {
+                if (cell.isValid) {
+                    foreach (Edge e in cell.boundaryEdges) {
+                        //e.DrawEdgeColored(Color.red);
+                        Gizmos.color = Color.magenta;
+                        Gizmos.DrawLine(e.pointA, e.pointB);
+                    }
+                }
+                
             }
         }
 

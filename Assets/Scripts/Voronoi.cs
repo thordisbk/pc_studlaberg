@@ -55,15 +55,18 @@ public class Voronoi
                         /*if (cc1WB && cc2WB) {
                             // use the edge between these two
                         }
+                        else {  // if (!cc1WB && !cc2WB) {
+                            // ignore edges outside of boundary
+                        }
                         else if (cc1WB && !cc2WB) {
                             // clip edge to end at boundary
+
                         }
                         else if (!cc1WB && cc2WB) {
                             // clip edge to end at boundary
+
                         }
-                        else {  // if (!cc1WB && !cc2WB) {
-                            // ignore edges outside of boundary
-                        }*/
+                        */
 
                     }
                 }
@@ -74,6 +77,13 @@ public class Voronoi
         voronoiCells = new List<VoronoiCell>();
         foreach (Vector3 key in centroids.Keys) {
             VoronoiCell newCell = new VoronoiCell(key, centroids[key]);
+            newCell.isValid = true;
+            foreach (Vector3 bp in newCell.boundaryPoints) {
+                if (!IsPointWithinBoundary(bp)) {
+                    newCell.isValid = false;
+                    break;
+                }
+            }
             voronoiCells.Add(newCell);
         }
 

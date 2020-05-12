@@ -10,16 +10,16 @@ public class PerlinNoise : MonoBehaviour
     public int depth = 20;  // height of terrain
     public float scale = 20f;
 
-    Renderer renderer;
+    Renderer r;
 
     // Start is called before the first frame update
     void Start()
     {
-        renderer = GetComponent<Renderer>();
+        r = GetComponent<Renderer>();
     }
 
     void Update() {
-        renderer.material.mainTexture = GenerateTexture();
+        r.material.mainTexture = GenerateTexture();
     }
 
     Texture2D GenerateTexture() {

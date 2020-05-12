@@ -11,6 +11,9 @@ public class VoronoiCell
 
     public Vector3 averageCenter;
 
+    // a reference to the mesh column that gets created form this cell
+    public GameObject theMeshObject;
+
     // a cell can be marked as valid if it is closed and its boundaryPoints are within the bigger boundary
     public bool isValid;
 
@@ -49,11 +52,10 @@ public class VoronoiCell
 
     public bool ShareEdge(VoronoiCell cell) {
         // returns true if cell and this cell share an edge
-        // since edges are created clockwise, it should not be neccessary to flip edges
         if (cell == null) return false;
         foreach (Edge e1 in boundaryEdges) {
             foreach (Edge e2 in cell.boundaryEdges) {
-                if (e1.isEqual(e2)) {
+                if (e1.isSame(e2)) {
                     return true;
                 }   
             }

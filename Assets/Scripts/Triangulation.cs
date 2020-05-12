@@ -42,7 +42,7 @@ public class Triangulation
         bool rem1 = pointsList.Remove(startPoints[1]);
         bool rem2 = pointsList.Remove(startPoints[2]);
         int removedCounter = (rem0 ? 1 : 0) + (rem1 ? 1 : 0) + (rem2 ? 1 : 0);
-        if (removedCounter > 0) Debug.Log(removedCounter + " values removed from points[] before triangulation");
+        //if (removedCounter > 0) Debug.Log(removedCounter + " values removed from points[] before triangulation");
         points = pointsList.ToArray();
 
         // initialize the list to hold the triangles

@@ -18,11 +18,11 @@ public class PerlinHeight
             float xCoord = pos.x / max_x * scale;
             float yCoord = pos.y;
             float zCoord = pos.z / max_z * scale;
-            Debug.Log("x = " + xCoord + ", z = " + zCoord);
-            Debug.Log("y = " + yCoord);
+            // Debug.Log("x = " + xCoord + ", z = " + zCoord);
+            // Debug.Log("y = " + yCoord);
 
             float value = Mathf.PerlinNoise(xCoord, zCoord);
-            Debug.Log("Value: " + value);
+            // Debug.Log("Value: " + value);
             obj.transform.position = new Vector3(pos.x, value, pos.z);
         }
         

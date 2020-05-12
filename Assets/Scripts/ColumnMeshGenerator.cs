@@ -152,11 +152,19 @@ public class ColumnMeshGenerator : MonoBehaviour
             if (i % 2 == 0) uvTempS[i+pl] = new Vector2(0f, 0f);
             else uvTempS[i+pl] = new Vector2(1f, 0f);
         }
-        // for the last odd size FIXME (doesn't quite work)
-        //Vector2[] uvTempL = new Vector2[pl*2];
+        // for the last odd size
+        Vector2[] uvTempL = new Vector2[pl*2];
+        for (int i = 0; i < pl; i++) {
+
+            if (i % 2 == 0 || i == corners) uvTempL[i] = new Vector2(0f, 1f);
+            else uvTempL[i] = new Vector2(1f, 1f);
+
+            if (i % 2 == 0 || i == corners) uvTempL[i+pl] = new Vector2(0f, 0f);
+            else uvTempL[i+pl] = new Vector2(1f, 0f);
+        }
 
         if (numOfSplits == 4) {
-            uv_ = uvTemp.Concat(uvTempS).Concat(uvTempS).Concat(uvTempS).ToArray();
+            uv_ = uvTemp.Concat(uvTempS).Concat(uvTempS).Concat(uvTempL).ToArray();
         }
         else {
             uv_ = uvTemp.Concat(uvTempS).Concat(uvTempS).ToArray();

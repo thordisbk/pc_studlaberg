@@ -136,14 +136,13 @@ public class MeshGenerator : MonoBehaviour
         // for the last odd size
         Vector2[] uvTempL = new Vector2[pl*2];
         for (int i = 0; i < pl; i++) {
+            Debug.Log(i);
 
-            if (i % 2 == 0) uvTempL[i] = new Vector2(0f, 0f);
-            else if (corners % 2 == 1 && i == pl-1) uvTempL[i] = new Vector2(1f, 0f);
-            else uvTempL[i] = new Vector2(1f, 0f);
+            if (i % 2 == 0 || i == corners) uvTempL[i] = new Vector2(0f, 1f);
+            else uvTempL[i] = new Vector2(1f, 1f);
 
-            if (i % 2 == 0) uvTempL[i+pl] = new Vector2(1f, 1f);
-            else if (corners % 2 == 1 && i == pl-1) uvTempL[i+pl] = new Vector2(0f, 1f);
-            else uvTempL[i+pl] = new Vector2(0f, 1f);
+            if (i % 2 == 0 || i == corners) uvTempL[i+pl] = new Vector2(0f, 0f);
+            else uvTempL[i+pl] = new Vector2(1f, 0f);
         }
 
 

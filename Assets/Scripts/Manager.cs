@@ -6,7 +6,7 @@ public class Manager : MonoBehaviour
 {
     public bool VERBOSE = false;
     public bool showTimer = true;
-    private float _y = 0f;  // y-value of the columns' top surface, the height
+    private float Yplane = 0f;  // y-value of the columns' top surface, the height
     
     [Header("Random Points")]
     public int pointsNum = 20;
@@ -39,6 +39,7 @@ public class Manager : MonoBehaviour
 
     [Header("Columns")]
     public GameObject columnMeshPrefab;
+    public float columnLength = 10f;
     private bool meshesCreated = false;
     private List<GameObject> meshObjects;
     public bool createBottomFace = true;
@@ -46,17 +47,22 @@ public class Manager : MonoBehaviour
 
     [Header("Perlin")]
     public bool doPerlin = false;
-    private bool firstPerlinDone = false;
+    //private bool firstPerlinDone = false;
     public float perlinScale = 5f;
+    public float perlinMultiplyer = 1f;
+    public float offsetX = 0f;
+    public float offsetZ = 0f;
 
     [Header("Ripple")]
     public float rippleMoveLength = 1f;
     public float rippleLerpTime = 0.5f;
+    public float percStartRipple = 0.5f;
     public bool doRandomRipple = false;
+    //private bool rippleResetNeeded = false;
     [Tooltip("Wait until ripple is done to reset, or not.")]
     public bool resetRipples = false;
-    private float waitBeforeNextRipple = 0f;
-    private float waitBeforeNextRippleCounter = 0f;
+    //private float waitBeforeNextRipple = 0f;
+    //private float waitBeforeNextRippleCounter = 0f;
 
     // Start is called before the first frame update
     void Start()
@@ -69,16 +75,18 @@ public class Manager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (showTimer) Debug.Log("Timer: " + Time.realtimeSinceStartup + " s");
+        float rt = Time.realtimeSinceStartup;
         if (doTriangulation) {
             doTriangulation = false;
             if (!firstTriangulationDone) {
+                Debug.Log("Get random points");
                 // create random points
-                randomPoints = new RandomPoints(max_x, max_z);
+                randomPoints = new RandomPoints(max_x, max_z, Yplane);
                 points = randomPoints.CreateRandomPoints(pointsNum, VERBOSE);
 
+                Debug.Log("Compute triangulation");
                 triangulation = null;
-                triangulation = new Triangulation(max_x, max_z, points, VERBOSE, validateAfterEveryPoint);
+                triangulation = new Triangulation(max_x, max_z, Yplane, points, VERBOSE, validateAfterEveryPoint);
                 triangulation.ComputeTriangulation();   
                 firstTriangulationDone = true;
             }
@@ -86,10 +94,11 @@ public class Manager : MonoBehaviour
                 Debug.LogError("Triangulation has already been computed.");
             }
         }
-        if (showTimer) Debug.Log("(Triangulation) Timer: " + Time.realtimeSinceStartup + " s");
+        if (showTimer) Debug.Log("(Triangulation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
         if (doVoronoi) {
             doVoronoi = false;
             if (!firstVoronoiDone && firstTriangulationDone) {
+                Debug.Log("Convert triangulation to Voronoi");
                 ConvertTriangulationToVoronoi();
                 firstVoronoiDone = true;
             }
@@ -100,7 +109,7 @@ public class Manager : MonoBehaviour
                 Debug.LogError("First Voronoi has already been computed.");
             }
         }
-        if (showTimer) Debug.Log("(Voronoi Diagram) Timer: " + Time.realtimeSinceStartup + " s");
+
         if (doRelaxation) {
             doRelaxation = false;
             if (firstVoronoiDone) {
@@ -119,10 +128,11 @@ public class Manager : MonoBehaviour
                 Debug.LogError("The first Voronoi must be computed before the diagram is relaxed.");
             }
         }
-        if (showTimer) Debug.Log("(Lloyd Relaxation) Timer: " + Time.realtimeSinceStartup + " s");
+
         if (doMesh) {
             doMesh = false;
             if (!meshesCreated && firstVoronoiDone) {
+                Debug.Log("Generate meshes");
                 CreateMeshColumns();
                 FindCellNeighbors();
                 meshesCreated = true;
@@ -134,39 +144,42 @@ public class Manager : MonoBehaviour
                 Debug.LogError("The first Voronoi must be computed before the meshes are created.");
             }
         }
-        if (showTimer) Debug.Log("(Mesh Generation) Timer: " + Time.realtimeSinceStartup + " s");
+
         if (doPerlin) {
             doPerlin = false;
             if (meshesCreated) {
+                Debug.Log("Apply Perlin Noise to column heights");
                 ApplyPerlinToVoronoi();
             }
             else {
                 Debug.LogError("Meshes must be generated before noise is applied.");
             }
         }
-        if (showTimer) Debug.Log("(Perlin Noise) Timer: " + Time.realtimeSinceStartup + " s");
-        showTimer = false;  // so timer only gets shown the first time Update() runs
 
         if (doRandomRipple) {
             doRandomRipple = false;
             if (meshesCreated) {
-                waitBeforeNextRipple = meshObjects.Count * rippleLerpTime * 2f;  // 2f for up and down
+                Debug.Log("Do random ripple (may need to reset first)");
+                // rippleResetNeeded = true;
                 ChooseRandomObjectToStartRipple();
             }
             else {
                 Debug.LogError("Meshes must be generated before ripple is applied.");
             }
-            
         }
+
         if (resetRipples) {
             resetRipples = false;
             if (meshesCreated) {
+                Debug.Log("Reset ripple");
                 // reset all RippleColumn
                 foreach (GameObject obj in meshObjects) {
                     obj.GetComponent<RippleColumn>().RESET = true;
                 }
+                // rippleResetNeeded = false;
             }
         } 
+        showTimer = false;  // so timer only gets shown the first time Update() runs
     }
 
     private void ConvertTriangulationToVoronoi() {
@@ -205,7 +218,7 @@ public class Manager : MonoBehaviour
         voronoi = null;
         // to the triangulation again
         triangulation = null;
-        triangulation = new Triangulation(max_x, max_z, points, VERBOSE, validateAfterEveryPoint);
+        triangulation = new Triangulation(max_x, max_z, Yplane, points, VERBOSE, validateAfterEveryPoint);
         triangulation.ComputeTriangulation();
     }
 
@@ -220,7 +233,7 @@ public class Manager : MonoBehaviour
                     //GameObject obj = Instantiate(columnMeshPrefab, Vector3.zero, Quaternion.identity);
                     GameObject obj = Instantiate(columnMeshPrefab, cell.center, Quaternion.identity);
                     ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
-                    cmg.Init(cell, createBottomFace);
+                    cmg.Init(cell, columnLength, createBottomFace);
                     meshObjects.Add(obj);
                     cell.theMeshObject = obj;
                 }
@@ -243,19 +256,20 @@ public class Manager : MonoBehaviour
                 }
                 if (VERBOSE) Debug.Log("Neighbors: " + neighbors.Count);
                 RippleColumn ripple = voronoi.voronoiCells[i].theMeshObject.GetComponent<RippleColumn>();
-                ripple.SetValues(neighbors, rippleMoveLength, rippleLerpTime);
+                ripple.SetValues(neighbors, rippleMoveLength, rippleLerpTime, percStartRipple);
             }
         }
     }
 
     private void ApplyPerlinToVoronoi() {
-        PerlinHeight perlinHeight = new PerlinHeight(max_x, max_z, perlinScale, meshObjects);
+        PerlinHeight perlinHeight = new PerlinHeight(max_x, max_z, Yplane, perlinScale, perlinMultiplyer, 
+                                                     offsetX, offsetZ, meshObjects);
     }
 
     private void ChooseRandomObjectToStartRipple() {
         // first update moveLength and lerpTime in case it has been changed
         foreach (GameObject obj in meshObjects) {
-            obj.GetComponent<RippleColumn>().UpdateValues(rippleMoveLength, rippleLerpTime);
+            obj.GetComponent<RippleColumn>().UpdateValues(rippleMoveLength, rippleLerpTime, percStartRipple);
         }
         // then choose a random index and start the ripple at the column with that index
         int randIdx = Random.Range(0, meshObjects.Count);

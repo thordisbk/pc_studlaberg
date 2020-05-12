@@ -13,9 +13,10 @@ public class RandomPoints
 
     private float _y = 0f;
 
-    public RandomPoints(float maxX, float maxZ) {
+    public RandomPoints(float maxX, float maxZ, float y) {
         max_x = maxX;
         max_z = maxZ;
+        _y = y;
     }
 
     public Vector3[] CreateRandomPoints(int num, bool verbose=false) {

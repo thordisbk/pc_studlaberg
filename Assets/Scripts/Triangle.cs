@@ -137,4 +137,10 @@ public class Triangle
         if (edgeCA.isSame(other.edgeAB) || edgeCA.isSame(other.edgeBC) || edgeCA.isSame(other.edgeCA)) return true;
         return false;
     }
+
+    public bool hasEdge(Edge e) {
+        // returns true if this triangle has e as one of its edges (either flipped or not)
+        if (edgeAB.isSame(e) || edgeBC.isSame(e) || edgeCA.isSame(e)) return true;
+        return false;
+    }
 }

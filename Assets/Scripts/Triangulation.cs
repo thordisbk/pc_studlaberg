@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 // Deulaunay Triangulation using the Bowyer-Watson algorithm
 // It depends on the following: if I already have a Delaunay triangulation for a given set of points, 
@@ -20,9 +21,10 @@ public class Triangulation
     private bool validateAfterEveryPoint = true;
     public List<Triangle> triangles;
 
-    public Triangulation(float maxX, float maxZ, Vector3[] thePoints, bool verbose=false, bool validateAlways=true) {
+    public Triangulation(float maxX, float maxZ, float y, Vector3[] thePoints, bool verbose=false, bool validateAlways=true) {
         max_x = maxX;
         max_z = maxZ;
+        _y = y;
         validateAfterEveryPoint = validateAlways;
         points = thePoints;
         VERBOSE = verbose;
@@ -90,10 +92,11 @@ public class Triangulation
         if (VERBOSE) Debug.Log("Number of triangles: " + triangles.Count);
 
         FindInvalidatedTriangles(newPoint, ref badTriangles, ref polygonHole);
+        // AddEdgesToPolygonHole(ref polygonHole, badTriangles);
         RemoveDuplicateEdgesFromPolygonHole(ref polygonHole);
         RemoveBadTrianglesFromTriangulation(ref badTriangles);
         FillInPolygonHole(newPoint, ref polygonHole);
-        RemoveDuplicateTriangles();  // TODO should not be needed
+        RemoveDuplicateTriangles();  // FIXME should not be needed
     }
 
     private void FindInvalidatedTriangles(Vector3 newPoint, ref List<Triangle> badTriangles, ref List<Edge> polygonHole) {
@@ -117,6 +120,33 @@ public class Triangulation
         }
         if (VERBOSE) Debug.Log("(after) badtriangles: " + badTriangles.Count);
         if (VERBOSE) Debug.Log("(after) polygonHole: " + polygonHole.Count);
+    }
+
+    private void AddEdgesToPolygonHole(ref List<Edge> polygonHole, List<Triangle> badTriangles) {
+        for (int i = 0; i < badTriangles.Count; i++) {
+            Edge e1 = badTriangles[i].edgeAB;
+            Edge e2 = badTriangles[i].edgeBC;
+            Edge e3 = badTriangles[i].edgeCA;
+            bool e1clear = true, e2clear = true, e3clear = true;
+
+            for (int j = i+1; j < badTriangles.Count; j++) {
+                // check if badTriangles[j] contains one of the 3 edges
+                if (badTriangles[j].hasEdge(e1)) {
+                    e1clear = false;
+                }
+                if (badTriangles[j].hasEdge(e2)) {
+                    e2clear = false;
+                }
+                if (badTriangles[j].hasEdge(e3)) {
+                    e3clear = false;
+                }
+            }
+
+            // then the edges are not shared by any other triangle in badTriangles and can be added to polygonHole
+            if (e1clear) polygonHole.Add(e1);
+            if (e2clear) polygonHole.Add(e2);
+            if (e3clear) polygonHole.Add(e3);
+        }
     }
 
     private void RemoveDuplicateEdgesFromPolygonHole(ref List<Edge> polygonHole) {
@@ -182,8 +212,6 @@ public class Triangulation
         if (VERBOSE) Debug.Log("# bad triangles: " + badTriangles.Count);
         if (VERBOSE) Debug.Log("triangles size before removal: " + triangles.Count);
         foreach (Triangle t in badTriangles) {
-            // removing is not done correctly !
-            //triangles.Remove(t);
             for (int i = triangles.Count - 1; i >= 0; i--) {
                 if (triangles[i].isSame(t)) {
                     triangles.RemoveAt(i);
@@ -203,7 +231,6 @@ public class Triangulation
 
             Edge new1 = new Edge(v2, newPoint);
             Edge new2 = new Edge(newPoint, v1);
-            //Triangle t = new Triangle(edge, new Edge(newPoint, v1), new Edge(newPoint, v2));  // orig
             Triangle t = new Triangle(edge, new1, new2);
 
             if (VERBOSE) Debug.Log("New triangle circumcenter: " + t.GetCircumcenter());
@@ -214,21 +241,21 @@ public class Triangulation
     }
 
     private void RemoveDuplicateTriangles() {
+        // TODO optimize or make this function unneccesary
         List<int> indices = new List<int>();
         for (int i = triangles.Count - 1; i >= 0; i--) {
             for (int j = i-1; j >= 0; j--) {
                 if (i != j && triangles[i].isSame(triangles[j])) {
                     if (VERBOSE) Debug.Log("! found duplicate triangle");
-                    //triangles.RemoveAt(i);
-                    if (!indices.Contains(i)) indices.Add(i);
-                    if (!indices.Contains(j)) indices.Add(j);
-                    // reset
+                    indices.Add(i);
+                    indices.Add(j);
                 }
             }            
         }
         if (VERBOSE) Debug.Log(triangles.Count + " triangles, remove:");
+        indices = indices.Distinct().ToList();
         indices.Sort((a, b) => a.CompareTo(b));  // sort ascending
-        if (VERBOSE) { for (int i = 0; i < indices.Count; i++) Debug.Log("i: " + indices[i]); }
+        if (VERBOSE) {  for (int i = 0; i < indices.Count; i++) Debug.Log("i: " + indices[i]); }
         // go from highest to lowest index
         for (int i = indices.Count - 1; i >= 0; i--) {
             triangles.RemoveAt(indices[i]);
@@ -254,7 +281,7 @@ public class Triangulation
     }
 
     private void CleanupBase(Vector3[] startPoints) {
-        // TODO remove this function? doesn't seem to work
+        // only do this if the triangulation should not be converted to Voronoi
         // https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm
         // remove all triangles that contain points from the base triangle
         if (VERBOSE) Debug.Log("CLEANUP (before) triangles: " + triangles.Count);

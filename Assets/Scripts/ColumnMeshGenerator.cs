@@ -19,8 +19,9 @@ public class ColumnMeshGenerator : MonoBehaviour
     private bool bottomMesh = true;
 
     // this function must be called on creation
-    public void Init(VoronoiCell cell, bool createBottomMesh=true) {
+    public void Init(VoronoiCell cell, float colLen, bool createBottomMesh=true) {
         
+        columnLength = colLen;
         bottomMesh = createBottomMesh;
 
         mesh = new Mesh();

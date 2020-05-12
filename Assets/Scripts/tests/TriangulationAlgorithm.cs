@@ -56,7 +56,7 @@ public class TriangulationAlgorithm : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        randomPoints = new RandomPoints(max_x, max_z);
+        randomPoints = new RandomPoints(max_x, max_z, _y);
         //triangles = new List<Triangle>();
         doRelaxation = false;
     }
@@ -156,7 +156,7 @@ public class TriangulationAlgorithm : MonoBehaviour
                 if (corners >= 3) {
                     GameObject obj = Instantiate(ColumnMeshPrefab, Vector3.zero, Quaternion.identity);
                     ColumnMeshGenerator cmg = obj.AddComponent<ColumnMeshGenerator>() as ColumnMeshGenerator;
-                    cmg.Init(cell, createBottomFace);
+                    cmg.Init(cell, 10f, createBottomFace);
                     meshes.Add(obj);
                 }
             }

@@ -10,6 +10,9 @@ public class PerlinNoise : MonoBehaviour
     public int depth = 20;  // height of terrain
     public float scale = 20f;
 
+    public float offsetX = 100f;
+    public float offsetY = 100f;
+
     Renderer r;
 
     // Start is called before the first frame update
@@ -37,8 +40,8 @@ public class PerlinNoise : MonoBehaviour
     }
 
     Color CalculateColor(int x, int y) {
-        float xCoord = (float) x / width * scale;
-        float yCoord = (float) y / height * scale;
+        float xCoord = (float) x / width * scale + offsetX;
+        float yCoord = (float) y / height * scale + offsetY;
         float sample = Mathf.PerlinNoise(xCoord, yCoord);
         Color color = new Color(sample, sample, sample);
         return color;

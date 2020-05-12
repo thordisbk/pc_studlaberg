@@ -15,21 +15,24 @@ public class RippleColumn : MonoBehaviour
     private Vector3 endPos;
     private float moveLength = 1f;
     private float lerpTime = 0.5f;
+    private float percStartRipple = 0.5f;
     private float currLerpTime = 0f;
     private bool doneActivatingOthers = false;
 
     [Tooltip("Reset values to do another ripple. Resetting on one object resets all other objects.")]
     public bool RESET = false;
 
-    public void SetValues(List<GameObject> nb, float ml, float lt) {
+    public void SetValues(List<GameObject> nb, float ml, float lt, float perc) {
         neighbors = nb;
         moveLength = ml;
         lerpTime = lt;
+        percStartRipple = perc;
     }
 
-    public void UpdateValues(float ml, float lt) {
+    public void UpdateValues(float ml, float lt, float perc) {
         moveLength = ml;
         lerpTime = lt;
+        percStartRipple = perc;
     }
 
     private void ResetVariables() {
@@ -78,7 +81,7 @@ public class RippleColumn : MonoBehaviour
             currLerpTime = 0f;
         }
         perc = SmoothStop2(perc);
-        if (perc > 0.5f && !doneActivatingOthers) {
+        if (perc >= percStartRipple && !doneActivatingOthers) {
             doneActivatingOthers = true;
             RippleNeighbors();
         }

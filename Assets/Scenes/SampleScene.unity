@@ -351,7 +351,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   VERBOSE: 0
   showTimer: 1
-  pointsNum: 150
+  pointsNum: 200
   max_x: 20
   max_z: 20
   showPoints: 1
@@ -363,13 +363,13 @@ MonoBehaviour:
   showVoronoiOnlyWithinBounds: 1
   doVoronoi: 1
   doRelaxation: 0
-  relaxTimes: 1
+  relaxTimes: 2
   columnMeshPrefab: {fileID: 6800096512831227748, guid: 5336f9561ac6efe4aaff24c6a655b44d,
     type: 3}
   columnLength: 10
   createBottomFace: 0
-  doMesh: 1
-  doPerlin: 1
+  doMesh: 0
+  doPerlin: 0
   perlinScale: 2
   perlinMultiplyer: 5
   offsetX: 100
@@ -378,6 +378,7 @@ MonoBehaviour:
   rippleLerpTime: 0.25
   percStartRipple: 0.5
   doRandomRipple: 0
+  doRandomPathing: 0
   resetRipples: 0
 --- !u!4 &318643146
 Transform:

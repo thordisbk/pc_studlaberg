@@ -212,7 +212,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   VERBOSE: 0
   showTimer: 1
-  pointsNum: 150
+  pointsNum: 200
   max_x: 20
   max_z: 20
   showPoints: 1
@@ -239,6 +239,7 @@ MonoBehaviour:
   rippleLerpTime: 0.25
   percStartRipple: 0.5
   doRandomRipple: 0
+  doRandomPathing: 0
   resetRipples: 0
 --- !u!4 &318643146
 Transform:

@@ -19,6 +19,7 @@ public class PerlinNoise : MonoBehaviour
     void Start()
     {
         r = GetComponent<Renderer>();
+        generate_gradient();
     }
 
     void Update() {
@@ -45,5 +46,35 @@ public class PerlinNoise : MonoBehaviour
         float sample = Mathf.PerlinNoise(xCoord, yCoord);
         Color color = new Color(sample, sample, sample);
         return color;
+    }
+
+    private void generate_gradient() {
+        /*
+        [
+          [
+            [0 1]
+            [0 1]
+          ]
+          [
+            [0 1]
+            [0 1]
+          ]
+        ]
+        */
+        int d1 = 5, d2 = 5, d3 = 2;
+        Vector2[,,] gradient = new Vector2[d1,d2,d3];
+
+        for (int i = 0; i < d1; i++) {
+            for (int j = 0; j < d2; j++) {
+                
+            }
+        }
+
+        Debug.Log(gradient); 
+        //gradient = 
+    }
+
+    private void perlin_noise(int size_x, int size_y, int frequency, Vector2[,,] gradient) {
+
     }
 }

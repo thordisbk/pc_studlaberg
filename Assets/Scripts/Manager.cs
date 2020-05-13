@@ -58,6 +58,7 @@ public class Manager : MonoBehaviour
     public float rippleLerpTime = 0.5f;
     public float percStartRipple = 0.5f;
     public bool doRandomRipple = false;
+    public bool doRandomPathing = false;
     //private bool rippleResetNeeded = false;
     [Tooltip("Wait until ripple is done to reset, or not.")]
     public bool resetRipples = false;
@@ -89,18 +90,23 @@ public class Manager : MonoBehaviour
                 triangulation = new Triangulation(max_x, max_z, Yplane, points, VERBOSE, validateAfterEveryPoint);
                 triangulation.ComputeTriangulation();   
                 firstTriangulationDone = true;
+
+                if (showTimer) Debug.Log("(Triangulation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
             }
             else {
                 Debug.LogError("Triangulation has already been computed.");
             }
         }
-        if (showTimer) Debug.Log("(Triangulation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
         if (doVoronoi) {
             doVoronoi = false;
             if (!firstVoronoiDone && firstTriangulationDone) {
                 Debug.Log("Convert triangulation to Voronoi");
                 ConvertTriangulationToVoronoi();
                 firstVoronoiDone = true;
+
+                int numOfValidCells = 0;
+                foreach (VoronoiCell cell in voronoi.voronoiCells) { if (cell.isValid) numOfValidCells++; } 
+                Debug.Log("Number of cells = " + numOfValidCells);
             }
             else if (!firstTriangulationDone) {
                 Debug.LogError("Triangulation must be computed before the Voronoi.");
@@ -121,6 +127,8 @@ public class Manager : MonoBehaviour
                     RelaxVoronoi();
                     ConvertTriangulationToVoronoi();
                     relaxTimesCounter++;
+
+                    if (showTimer) Debug.Log("(Relaxation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
                 }
                 relaxTimesCounter = 0;
             }
@@ -158,6 +166,7 @@ public class Manager : MonoBehaviour
 
         if (doRandomRipple) {
             doRandomRipple = false;
+            doRandomPathing = false;
             if (meshesCreated) {
                 Debug.Log("Do random ripple (may need to reset first)");
                 // rippleResetNeeded = true;
@@ -165,6 +174,18 @@ public class Manager : MonoBehaviour
             }
             else {
                 Debug.LogError("Meshes must be generated before ripple is applied.");
+            }
+        }
+
+        if (doRandomPathing) {
+            doRandomPathing = false;
+            if (meshesCreated) {
+                Debug.Log("Do random pathing (may need to reset first)");
+                // rippleResetNeeded = true;
+                ChooseRandomObjectToStartPathing();
+            }
+            else {
+                Debug.LogError("Meshes must be generated before pathing is applied.");
             }
         }
 
@@ -179,7 +200,7 @@ public class Manager : MonoBehaviour
                 // rippleResetNeeded = false;
             }
         } 
-        showTimer = false;  // so timer only gets shown the first time Update() runs
+        //showTimer = false;  // so timer only gets shown the first time Update() runs
     }
 
     private void ConvertTriangulationToVoronoi() {
@@ -274,6 +295,16 @@ public class Manager : MonoBehaviour
         // then choose a random index and start the ripple at the column with that index
         int randIdx = Random.Range(0, meshObjects.Count);
         meshObjects[randIdx].GetComponent<RippleColumn>().doRipple = true;
+    }
+
+    private void ChooseRandomObjectToStartPathing() {
+        // first update moveLength and lerpTime in case it has been changed
+        foreach (GameObject obj in meshObjects) {
+            obj.GetComponent<RippleColumn>().UpdateValues(rippleMoveLength, rippleLerpTime, percStartRipple);
+        }
+         // then choose a random index and start the ripple at the column with that index
+        int randIdx = Random.Range(0, meshObjects.Count);
+        meshObjects[randIdx].GetComponent<RippleColumn>().doPathing = true;
     }
 
     private bool IsPointWithinBoundary(Vector3 point) {

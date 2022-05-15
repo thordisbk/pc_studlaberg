@@ -43,7 +43,7 @@ public class Manager : MonoBehaviour
     private bool meshesCreated = false;
     private List<GameObject> meshObjects;
     public bool createBottomFace = true;
-    public bool doMesh = false;
+    public bool createMesh = false;
 
     [Header("Perlin")]
     public bool doPerlin = false;
@@ -68,8 +68,10 @@ public class Manager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (columnMeshPrefab == null) {
+        if (columnMeshPrefab == null) 
+        {
             Debug.LogError("The variable columnMeshPrefab has not been assigned.");
+            enabled = false;
         }
     }
 
@@ -77,9 +79,40 @@ public class Manager : MonoBehaviour
     void Update()
     {
         float rt = Time.realtimeSinceStartup;
-        if (doTriangulation) {
+        bool updated = false;
+
+        updated = UpdateTriangulation();
+        if (showTimer && updated) Debug.Log("(Triangulation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
+        rt = Time.realtimeSinceStartup;
+
+        updated = UpdateVoronoi();
+        if (showTimer && updated) Debug.Log("(Voronoi) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
+        rt = Time.realtimeSinceStartup;
+
+        updated = UpdateRelaxation();
+        if (showTimer && updated) Debug.Log("(Relaxation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
+        rt = Time.realtimeSinceStartup;
+
+        updated = UpdateMesh();
+        if (showTimer && updated) Debug.Log("(Mesh) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
+        rt = Time.realtimeSinceStartup;
+
+        updated = UpdatePerlin();
+        if (showTimer && updated) Debug.Log("(Perlin) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
+        rt = Time.realtimeSinceStartup;
+
+        UpdateAnimations();
+
+        //showTimer = false;  // so timer only gets shown the first time Update() runs
+    }
+
+    private bool UpdateTriangulation()
+    {
+        if (doTriangulation)
+        {
             doTriangulation = false;
-            if (!firstTriangulationDone) {
+            if (!firstTriangulationDone)
+            {
                 Debug.Log("Get random points");
                 // create random points
                 randomPoints = new RandomPoints(max_x, max_z, Yplane);
@@ -88,148 +121,209 @@ public class Manager : MonoBehaviour
                 Debug.Log("Compute triangulation");
                 triangulation = null;
                 triangulation = new Triangulation(max_x, max_z, Yplane, points, VERBOSE, validateAfterEveryPoint);
-                triangulation.ComputeTriangulation();   
+                triangulation.ComputeTriangulation();
                 firstTriangulationDone = true;
 
-                if (showTimer) Debug.Log("(Triangulation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
+                return true;
             }
-            else {
+            else
+            {
                 Debug.LogError("Triangulation has already been computed.");
             }
         }
-        if (doVoronoi) {
+
+        return false;
+    }
+
+    private bool UpdateVoronoi()
+    {
+        if (doVoronoi)
+        {
             doVoronoi = false;
-            if (!firstVoronoiDone && firstTriangulationDone) {
+            if (!firstVoronoiDone && firstTriangulationDone)
+            {
                 Debug.Log("Convert triangulation to Voronoi");
                 ConvertTriangulationToVoronoi();
                 firstVoronoiDone = true;
 
                 int numOfValidCells = 0;
-                foreach (VoronoiCell cell in voronoi.voronoiCells) { if (cell.isValid) numOfValidCells++; } 
+                foreach (VoronoiCell cell in voronoi.voronoiCells) { if (cell.isValid) numOfValidCells++; }
                 Debug.Log("Number of cells = " + numOfValidCells);
+
+                return true;
             }
-            else if (!firstTriangulationDone) {
+            else if (!firstTriangulationDone)
+            {
                 Debug.LogError("Triangulation must be computed before the Voronoi.");
             }
-            else {
+            else
+            {
                 Debug.LogError("First Voronoi has already been computed.");
             }
         }
 
-        if (doRelaxation) {
+        return false;
+    }
+
+    private bool UpdateRelaxation()
+    {
+        if (doRelaxation)
+        {
             doRelaxation = false;
-            if (firstVoronoiDone) {
-                if (relaxTimes < 0) relaxTimes = 0;
+            if (firstVoronoiDone)
+            {
+                if (relaxTimes < 0) 
+                    relaxTimes = 0;
                 Debug.Log("The Voronoi will be relaxed " + relaxTimes + " time" + (relaxTimes != 1 ? "s." : "."));
-                while (relaxTimesCounter < relaxTimes) {
+                while (relaxTimesCounter < relaxTimes)
+                {
                     totalRelaxesDone++;
                     Debug.Log("Apply Relaxation #" + totalRelaxesDone);
                     RelaxVoronoi();
                     ConvertTriangulationToVoronoi();
                     relaxTimesCounter++;
-
-                    if (showTimer) Debug.Log("(Relaxation) Timer: " + (Time.realtimeSinceStartup - rt) + " s");
                 }
                 relaxTimesCounter = 0;
+
+                return true;
             }
-            else {
+            else
+            {
                 Debug.LogError("The first Voronoi must be computed before the diagram is relaxed.");
             }
         }
 
-        if (doMesh) {
-            doMesh = false;
-            if (!meshesCreated && firstVoronoiDone) {
+        return false;
+    }
+
+    private bool UpdateMesh()
+    {
+        if (createMesh)
+        {
+            createMesh = false;
+            if (meshesCreated)
+            {
+                for (int i = 0; i < meshObjects.Count; i++)
+                    Destroy(meshObjects[i]);
+                meshObjects.Clear();
+                meshesCreated = false;
+            }
+            if (!meshesCreated && firstVoronoiDone)
+            {
                 Debug.Log("Generate meshes");
                 CreateMeshColumns();
                 FindCellNeighbors();
                 meshesCreated = true;
+
+                return true;
             }
-            else if (meshesCreated) {
-                Debug.LogError("Meshes have already been generated.");
-            }
-            else {
+            //else if (meshesCreated) {
+            //    Debug.LogError("Meshes have already been generated.");
+            //}
+            else
+            {
                 Debug.LogError("The first Voronoi must be computed before the meshes are created.");
             }
         }
 
-        if (doPerlin) {
+        return false;
+    }
+
+    private bool UpdatePerlin()
+    {
+        if (doPerlin)
+        {
             doPerlin = false;
-            if (meshesCreated) {
+            if (meshesCreated)
+            {
                 Debug.Log("Apply Perlin Noise to column heights");
                 ApplyPerlinToVoronoi();
+
+                return true;
             }
-            else {
+            else
+            {
                 Debug.LogError("Meshes must be generated before noise is applied.");
             }
         }
 
-        if (doRandomRipple) {
+        return false;
+    }
+
+    private void UpdateAnimations()
+    {
+        if (doRandomRipple)
+        {
             doRandomRipple = false;
             doRandomPathing = false;
-            if (meshesCreated) {
+            if (meshesCreated)
+            {
                 Debug.Log("Do random ripple (may need to reset first)");
                 // rippleResetNeeded = true;
                 ChooseRandomObjectToStartRipple();
             }
-            else {
+            else
+            {
                 Debug.LogError("Meshes must be generated before ripple is applied.");
             }
         }
 
-        if (doRandomPathing) {
+        if (doRandomPathing)
+        {
             doRandomPathing = false;
-            if (meshesCreated) {
+            if (meshesCreated)
+            {
                 Debug.Log("Do random pathing (may need to reset first)");
                 // rippleResetNeeded = true;
                 ChooseRandomObjectToStartPathing();
             }
-            else {
+            else
+            {
                 Debug.LogError("Meshes must be generated before pathing is applied.");
             }
         }
 
-        if (resetRipples) {
+        if (resetRipples)
+        {
             resetRipples = false;
-            if (meshesCreated) {
+            if (meshesCreated)
+            {
                 Debug.Log("Reset ripple");
                 // reset all RippleColumn
-                foreach (GameObject obj in meshObjects) {
+                foreach (GameObject obj in meshObjects)
                     obj.GetComponent<RippleColumn>().RESET = true;
-                }
+                
                 // rippleResetNeeded = false;
             }
-        } 
-        //showTimer = false;  // so timer only gets shown the first time Update() runs
+        }
     }
 
-    private void ConvertTriangulationToVoronoi() {
+    private void ConvertTriangulationToVoronoi() 
+    {
         // check if there are invalid triangles
         int invalids = triangulation.CountInvalidTriangles(points, true);  // findFirst=true
-        if (invalids > 0) {
+        if (invalids > 0)
             Debug.LogError("Found invalid triangles; triangulation is faulty.");
-        }
 
         voronoi = new Voronoi(max_x, max_z);
-        if (invalids == 0) {
+        if (invalids == 0)
             voronoi.ComputeVoronoi(triangulation.triangles, points);
-        }
     }
 
-    private void RelaxVoronoi() {
+    private void RelaxVoronoi() 
+    {
         // instead of random points, use the average of voronoi cell boundary points
         
         // the points from the big base triangle get added here, but removed in ComputeTriangulation()
         List<Vector3> pointsNew = new List<Vector3>();
-        foreach (VoronoiCell voronoiCell in voronoi.voronoiCells) {
+        foreach (VoronoiCell voronoiCell in voronoi.voronoiCells) 
+        {
             // if average center is within initial boundary, use that
             // else use the previous random center
-            if (IsPointWithinBoundary(voronoiCell.averageCenter)) {
+            if (IsPointWithinBoundary(voronoiCell.averageCenter))
                 pointsNew.Add(voronoiCell.averageCenter);
-            }
-            else {
+            else
                 pointsNew.Add(voronoiCell.center);
-            }
         }
 
         points = null;
@@ -243,13 +337,17 @@ public class Manager : MonoBehaviour
         triangulation.ComputeTriangulation();
     }
 
-    private void CreateMeshColumns() {
+    private void CreateMeshColumns() 
+    {
         meshObjects = new List<GameObject>();
-        foreach (VoronoiCell cell in voronoi.voronoiCells) {
-            if (cell.isValid) {
+        foreach (VoronoiCell cell in voronoi.voronoiCells) 
+        {
+            if (cell.isValid) 
+            {
                 int corners = cell.boundaryPoints.Count;
                 if (VERBOSE) Debug.Log("Corners: " + corners);
-                if (corners >= 3) {
+                if (corners >= 3) 
+                {
                     // set object at cell.center, in cmg.Init() all boundary points get converted with that in mind
                     //GameObject obj = Instantiate(columnMeshPrefab, Vector3.zero, Quaternion.identity);
                     GameObject obj = Instantiate(columnMeshPrefab, cell.center, Quaternion.identity);
@@ -263,14 +361,19 @@ public class Manager : MonoBehaviour
         if (VERBOSE) Debug.Log("Number of meshObjects: " + meshObjects.Count);
     }
 
-    private void FindCellNeighbors() {
-        for (int i = 0; i < voronoi.voronoiCells.Count; i++) {
-            if (voronoi.voronoiCells[i].isValid) {
+    private void FindCellNeighbors() 
+    {
+        for (int i = 0; i < voronoi.voronoiCells.Count; i++) 
+        {
+            if (voronoi.voronoiCells[i].isValid) 
+            {
                 // only do this to valid cells that create meshes
                 List<GameObject> neighbors = new List<GameObject>();
-                for (int j = 0; j < voronoi.voronoiCells.Count; j++) {
+                for (int j = 0; j < voronoi.voronoiCells.Count; j++) 
+                {
                     if (i != j && voronoi.voronoiCells[j].isValid 
-                        && voronoi.voronoiCells[i].ShareEdge(voronoi.voronoiCells[j])) {
+                        && voronoi.voronoiCells[i].ShareEdge(voronoi.voronoiCells[j])) 
+                    {
                         // this cell is a neighbor to the cell above if both are valid and they share an edge
                         neighbors.Add(voronoi.voronoiCells[j].theMeshObject);
                     }
@@ -282,41 +385,47 @@ public class Manager : MonoBehaviour
         }
     }
 
-    private void ApplyPerlinToVoronoi() {
+    private void ApplyPerlinToVoronoi() 
+    {
         PerlinHeight perlinHeight = new PerlinHeight(max_x, max_z, Yplane, perlinScale, perlinMultiplyer, 
                                                      offsetX, offsetZ, meshObjects);
     }
 
-    private void ChooseRandomObjectToStartRipple() {
+    private void ChooseRandomObjectToStartRipple() 
+    {
         // first update moveLength and lerpTime in case it has been changed
-        foreach (GameObject obj in meshObjects) {
+        foreach (GameObject obj in meshObjects)
             obj.GetComponent<RippleColumn>().UpdateValues(rippleMoveLength, rippleLerpTime, percStartRipple);
-        }
+        
         // then choose a random index and start the ripple at the column with that index
         int randIdx = Random.Range(0, meshObjects.Count);
         meshObjects[randIdx].GetComponent<RippleColumn>().doRipple = true;
     }
 
-    private void ChooseRandomObjectToStartPathing() {
+    private void ChooseRandomObjectToStartPathing() 
+    {
         // first update moveLength and lerpTime in case it has been changed
-        foreach (GameObject obj in meshObjects) {
+        foreach (GameObject obj in meshObjects)
             obj.GetComponent<RippleColumn>().UpdateValues(rippleMoveLength, rippleLerpTime, percStartRipple);
-        }
+        
          // then choose a random index and start the ripple at the column with that index
         int randIdx = Random.Range(0, meshObjects.Count);
         meshObjects[randIdx].GetComponent<RippleColumn>().doPathing = true;
     }
 
-    private bool IsPointWithinBoundary(Vector3 point) {
+    private bool IsPointWithinBoundary(Vector3 point) 
+    {
         bool xOK = (0f <= point.x && point.x <= max_x); 
         bool zOK = (0f <= point.z && point.z <= max_z); 
         return (xOK && zOK);
     }
 
-    void OnDrawGizmos() {
-
-        if (triangulation != null && showTriangulation) {
-            foreach (Triangle t in triangulation.triangles) {
+    void OnDrawGizmos() 
+    {
+        if (triangulation != null && showTriangulation) 
+        {
+            foreach (Triangle t in triangulation.triangles) 
+            {
                 Gizmos.color = Color.white;
                 Gizmos.DrawLine(t.pointA, t.pointB);
                 Gizmos.DrawLine(t.pointB, t.pointC);
@@ -324,16 +433,21 @@ public class Manager : MonoBehaviour
             }
         }
 
-        if (points != null && showPoints) {
-            foreach (Vector3 p in points) {
+        if (points != null && showPoints) 
+        {
+            foreach (Vector3 p in points) 
+            {
                 Gizmos.color = Color.black;
                 Gizmos.DrawSphere(p, 0.05f);
             }
         }
 
-        if (voronoi != null && voronoi.voronoiCells != null && showVoronoiWhole) {
-            foreach (VoronoiCell cell in voronoi.voronoiCells) {
-                foreach (Edge e in cell.boundaryEdges) {
+        if (voronoi != null && voronoi.voronoiCells != null && showVoronoiWhole) 
+        {
+            foreach (VoronoiCell cell in voronoi.voronoiCells) 
+            {
+                foreach (Edge e in cell.boundaryEdges) 
+                {
                     //e.DrawEdgeColored(Color.red);
                     Gizmos.color = Color.red;
                     Gizmos.DrawLine(e.pointA, e.pointB);
@@ -341,10 +455,14 @@ public class Manager : MonoBehaviour
             }
         }
 
-        if (voronoi != null && voronoi.voronoiCells != null && showVoronoiOnlyWithinBounds) {
-            foreach (VoronoiCell cell in voronoi.voronoiCells) {
-                if (cell.isValid) {
-                    foreach (Edge e in cell.boundaryEdges) {
+        if (voronoi != null && voronoi.voronoiCells != null && showVoronoiOnlyWithinBounds) 
+        {
+            foreach (VoronoiCell cell in voronoi.voronoiCells) 
+            {
+                if (cell.isValid) 
+                {
+                    foreach (Edge e in cell.boundaryEdges) 
+                    {
                         //e.DrawEdgeColored(Color.red);
                         Gizmos.color = Color.magenta;
                         Gizmos.DrawLine(e.pointA, e.pointB);
@@ -354,10 +472,13 @@ public class Manager : MonoBehaviour
             }
         }
 
-        if (voronoi != null && voronoi.voronoiCells != null && showVoronoiCenterEdges) {
+        if (voronoi != null && voronoi.voronoiCells != null && showVoronoiCenterEdges) 
+        {
             // draw lines from center to all points
-            foreach (VoronoiCell cell in voronoi.voronoiCells) {
-                foreach (Vector3 p in cell.boundaryPoints) {
+            foreach (VoronoiCell cell in voronoi.voronoiCells) 
+            {
+                foreach (Vector3 p in cell.boundaryPoints) 
+                {
                     //Edge newEdge = new Edge(cell.center, p);
                     //newEdge.DrawEdgeColored(Color.green);
                     Gizmos.color = Color.green;

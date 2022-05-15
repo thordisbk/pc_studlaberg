@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
@@ -7,7 +6,6 @@ using System.Linq;
 // It depends on the following: if I already have a Delaunay triangulation for a given set of points, 
 //   I can add a new point and update my triangulation.
 // https://leatherbee.org/index.php/2018/10/06/terrain-generation-3-voronoi-diagrams/
-
 
 public class Triangulation
 {
@@ -21,7 +19,8 @@ public class Triangulation
     private bool validateAfterEveryPoint = true;
     public List<Triangle> triangles;
 
-    public Triangulation(float maxX, float maxZ, float y, Vector3[] thePoints, bool verbose=false, bool validateAlways=true) {
+    public Triangulation(float maxX, float maxZ, float y, Vector3[] thePoints, bool verbose=false, bool validateAlways=true) 
+    {
         max_x = maxX;
         max_z = maxZ;
         _y = y;
@@ -30,8 +29,8 @@ public class Triangulation
         VERBOSE = verbose;
     }
 
-    public void ComputeTriangulation() {
-        
+    public void ComputeTriangulation() 
+    {   
         // create starting points (the big triangle)
         Vector3[] startPoints = new Vector3[3];
         startPoints[0] = new Vector3(0f, _y, 0f);
@@ -56,22 +55,27 @@ public class Triangulation
 
         // add a new point to an existing triangulation
         List<Vector3> tmpPoints = new List<Vector3>();
-        foreach (Vector3 p in points) {
+        foreach (Vector3 p in points) 
+        {
             if (VERBOSE) Debug.Log("ADD NEW POINT --------------- " + p);
             TriangulationStart(p);
 
-            if (validateAfterEveryPoint) {
+            if (validateAfterEveryPoint) 
+            {
                 tmpPoints.Add(p);
                 int invalidsCheck = CountInvalidTriangles(tmpPoints.ToArray(), false);  // findFirst=true
-                if (invalidsCheck > 0) {
+                if (invalidsCheck > 0) 
+                {
                     Debug.LogError("------ !!!: found error");
+                    // TODO return?
                 }
             }
         }
 
         // check if there are invalid triangles
         int invalids = CountInvalidTriangles(points, true);  // findFirst=true
-        if (invalids > 0) {
+        if (invalids > 0) 
+        {
             Debug.LogError("Found invalid triangles; triangulation is faulty.");
         }
 
@@ -85,36 +89,49 @@ public class Triangulation
         
     }
 
-    private void TriangulationStart(Vector3 newPoint) {
+    private void TriangulationStart(Vector3 newPoint) 
+    {
         List<Triangle> badTriangles = new List<Triangle>();
         List<Edge> polygonHole = new List<Edge>(); 
 
         if (VERBOSE) Debug.Log("Number of triangles: " + triangles.Count);
+
+        float rt = Time.realtimeSinceStartup;  // FOR TIMER
 
         FindInvalidatedTriangles(newPoint, ref badTriangles, ref polygonHole);
         // AddEdgesToPolygonHole(ref polygonHole, badTriangles);
         RemoveDuplicateEdgesFromPolygonHole(ref polygonHole);
         RemoveBadTrianglesFromTriangulation(ref badTriangles);
         FillInPolygonHole(newPoint, ref polygonHole);
+
+        Debug.Log("[Triangulation, base] Timer: " + (Time.realtimeSinceStartup - rt) + " s");  // FOR TIMER
+        rt = Time.realtimeSinceStartup;  // FOR TIMER
+
         RemoveDuplicateTriangles();  // FIXME should not be needed
+
+        Debug.Log("[Triangulation, remove dupes] Timer: " + (Time.realtimeSinceStartup - rt) + " s");  // FOR TIMER
     }
 
-    private void FindInvalidatedTriangles(Vector3 newPoint, ref List<Triangle> badTriangles, ref List<Edge> polygonHole) {
-        
+    private void FindInvalidatedTriangles(Vector3 newPoint, ref List<Triangle> badTriangles, ref List<Edge> polygonHole) 
+    { 
         if (VERBOSE) Debug.Log("(before) badtriangles: " + badTriangles.Count);
         if (VERBOSE) Debug.Log("(before) polygonHole: " + polygonHole.Count);
-        foreach (Triangle t in triangles) {
+        foreach (Triangle t in triangles) 
+        {
+            if (VERBOSE) Debug.Log(t);
+
             // check if the circumcircle of t contains newPoint
             bool contains = t.IsPointInsideCircumcircle(newPoint);
-            if (VERBOSE) Debug.Log(t);
-            if (contains) {
+            if (contains) 
+            {
                 if (VERBOSE) Debug.Log("newPoint is within the circumcircle (add edges to polygonHole)");
                 badTriangles.Add(t);
                 polygonHole.Add(t.edgeAB);
                 polygonHole.Add(t.edgeBC);
                 polygonHole.Add(t.edgeCA);
             }
-            else {
+            else 
+            {
                 if (VERBOSE) Debug.Log("newPoint is NOT within the circumcircle");
             }
         }
@@ -122,37 +139,43 @@ public class Triangulation
         if (VERBOSE) Debug.Log("(after) polygonHole: " + polygonHole.Count);
     }
 
-    private void AddEdgesToPolygonHole(ref List<Edge> polygonHole, List<Triangle> badTriangles) {
-        for (int i = 0; i < badTriangles.Count; i++) {
+    private void AddEdgesToPolygonHole(ref List<Edge> polygonHole, List<Triangle> badTriangles) 
+    {
+        for (int i = 0; i < badTriangles.Count; i++) 
+        {
             Edge e1 = badTriangles[i].edgeAB;
             Edge e2 = badTriangles[i].edgeBC;
             Edge e3 = badTriangles[i].edgeCA;
             bool e1clear = true, e2clear = true, e3clear = true;
 
-            for (int j = i+1; j < badTriangles.Count; j++) {
+            for (int j = i+1; j < badTriangles.Count; j++) 
+            {
                 // check if badTriangles[j] contains one of the 3 edges
-                if (badTriangles[j].hasEdge(e1)) {
+                if (badTriangles[j].hasEdge(e1))
                     e1clear = false;
-                }
-                if (badTriangles[j].hasEdge(e2)) {
+                if (badTriangles[j].hasEdge(e2))
                     e2clear = false;
-                }
-                if (badTriangles[j].hasEdge(e3)) {
+                if (badTriangles[j].hasEdge(e3))
                     e3clear = false;
-                }
             }
 
             // then the edges are not shared by any other triangle in badTriangles and can be added to polygonHole
-            if (e1clear) polygonHole.Add(e1);
-            if (e2clear) polygonHole.Add(e2);
-            if (e3clear) polygonHole.Add(e3);
+            if (e1clear) 
+                polygonHole.Add(e1);
+            if (e2clear) 
+                polygonHole.Add(e2);
+            if (e3clear) 
+                polygonHole.Add(e3);
         }
     }
 
-    private void RemoveDuplicateEdgesFromPolygonHole(ref List<Edge> polygonHole) {
-        foreach (Edge edge in polygonHole) {
+    private void RemoveDuplicateEdgesFromPolygonHole(ref List<Edge> polygonHole) 
+    {
+        foreach (Edge edge in polygonHole) 
+        {
             //  IF the edge's second vertex is left of its first coordinate:
-            if (edge.pointB.x < edge.pointA.x) {
+            if (edge.pointB.x < edge.pointA.x) 
+            {
                 // flip the edge around by swapping its vertices
                 //if (VERBOSE) Debug.Log("flip edge");
                 edge.FlipEdge();
@@ -162,20 +185,24 @@ public class Triangulation
         // sort
         if (VERBOSE) Debug.Log("polygonHole unsorted: " + polygonHole.Count);
         if (VERBOSE) { foreach (Edge e in polygonHole) Debug.Log(e.ToString()); }
+
         polygonHole.Sort((e1, e2) => e1.pointB.z.CompareTo(e2.pointB.z));
         polygonHole.Sort((e1, e2) => e1.pointB.x.CompareTo(e2.pointB.x));
         polygonHole.Sort((e1, e2) => e1.pointA.z.CompareTo(e2.pointA.z));
         polygonHole.Sort((e1, e2) => e1.pointA.x.CompareTo(e2.pointA.x));
+
         if (VERBOSE) Debug.Log("polygonHole sorted: " + polygonHole.Count);
         if (VERBOSE) { foreach (Edge e in polygonHole) Debug.Log(e.ToString()); }
 
         if (VERBOSE) Debug.Log("polygonHole size before removal: " + polygonHole.Count);
         RemoveRepeatedEdges(ref polygonHole);
+
         if (VERBOSE) Debug.Log("polygonHole size after removal: " + polygonHole.Count);
         if (VERBOSE) { foreach (Edge e in polygonHole) Debug.Log(e.ToString()); }
     }
 
-    private void RemoveRepeatedEdges(ref List<Edge> polygonHole) {
+    private void RemoveRepeatedEdges(ref List<Edge> polygonHole) 
+    {
         // According to leatherbee: IF edge is equivalent to previous edge, remove current edge
         // But here: https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm
         //  it says only to include edges that are not shared by 2 or more triangles
@@ -183,37 +210,55 @@ public class Triangulation
         // this functions removes edges from polygonHole that appear once or more
         // given that polygonHole has already been sorted
 
-        if (polygonHole.Count < 2) {
-            // then there are either 1 or 0 edges and threfore no duplicates
+        if (polygonHole.Count < 2) 
+        {
+            // then there are either 1 or 0 edges and therefore no duplicates
             return;
         }
 
-        Edge prevEdge = polygonHole[polygonHole.Count-1];
+        string listStr = "";
+        foreach (Edge e in polygonHole) listStr += e.ToString() + "\n";
+        Debug.Log("polygonHole size before removal: " + polygonHole.Count + "\n" + listStr);
+
+        Edge prevEdge = polygonHole[polygonHole.Count - 1];
         bool prevDup = false;
-        for (int i = polygonHole.Count - 2; i >= 0; i--) {
-            if (prevEdge.isEqual(polygonHole[i])) {
-                polygonHole.RemoveAt(i+1);
+        for (int i = polygonHole.Count - 2; i >= 0; i--)
+        {
+            if (prevEdge.isEqual(polygonHole[i]))
+            {
+                polygonHole.RemoveAt(i + 1);
                 prevDup = true;
             }
-            else {
-                if (prevDup) {
-                    polygonHole.RemoveAt(i+1);
+            else
+            {
+                if (prevDup)
+                {
+                    polygonHole.RemoveAt(i + 1);
                     prevDup = false;
                 }
             }
             prevEdge = polygonHole[i];
         }
-        if (prevDup) {
+        if (prevDup)
+        {
             polygonHole.RemoveAt(0);
         }
+
+        listStr = "";
+        foreach (Edge e in polygonHole) listStr += e.ToString() + "\n";
+        Debug.Log("polygonHole size after removal: " + polygonHole.Count + "\n" + listStr);
     }
 
-    private void RemoveBadTrianglesFromTriangulation(ref List<Triangle> badTriangles) {
+    private void RemoveBadTrianglesFromTriangulation(ref List<Triangle> badTriangles) 
+    {
         if (VERBOSE) Debug.Log("# bad triangles: " + badTriangles.Count);
         if (VERBOSE) Debug.Log("triangles size before removal: " + triangles.Count);
-        foreach (Triangle t in badTriangles) {
-            for (int i = triangles.Count - 1; i >= 0; i--) {
-                if (triangles[i].isSame(t)) {
+        foreach (Triangle t in badTriangles) 
+        {
+            for (int i = triangles.Count - 1; i >= 0; i--) 
+            {
+                if (triangles[i].isSame(t)) 
+                {
                     triangles.RemoveAt(i);
                     if (VERBOSE) Debug.Log("Removed triangle: " + t);
                 }
@@ -223,9 +268,11 @@ public class Triangulation
         if (VERBOSE) { foreach (Triangle t in triangles) Debug.Log(t.ToString()); }
     }
 
-    private void FillInPolygonHole(Vector3 newPoint, ref List<Edge> polygonHole) {
+    private void FillInPolygonHole(Vector3 newPoint, ref List<Edge> polygonHole) 
+    {
         if (VERBOSE) Debug.Log("polygonHole size: " + polygonHole.Count);
-        foreach (Edge edge in polygonHole) {
+        foreach (Edge edge in polygonHole) 
+        {
             Vector3 v1 = edge.pointA;
             Vector3 v2 = edge.pointB;
 
@@ -240,12 +287,16 @@ public class Triangulation
         if (VERBOSE) { foreach (Triangle t in triangles) Debug.Log(t.ToString()); }
     }
 
-    private void RemoveDuplicateTriangles() {
+    private void RemoveDuplicateTriangles() 
+    {
         // TODO optimize or make this function unneccesary
         List<int> indices = new List<int>();
-        for (int i = triangles.Count - 1; i >= 0; i--) {
-            for (int j = i-1; j >= 0; j--) {
-                if (i != j && triangles[i].isSame(triangles[j])) {
+        for (int i = triangles.Count - 1; i >= 0; i--) 
+        {
+            for (int j = i-1; j >= 0; j--) 
+            {
+                if (i != j && triangles[i].isSame(triangles[j])) 
+                {
                     if (VERBOSE) Debug.Log("! found duplicate triangle");
                     indices.Add(i);
                     indices.Add(j);
@@ -253,23 +304,30 @@ public class Triangulation
             }            
         }
         if (VERBOSE) Debug.Log(triangles.Count + " triangles, remove:");
+        
         indices = indices.Distinct().ToList();
         indices.Sort((a, b) => a.CompareTo(b));  // sort ascending
+
         if (VERBOSE) {  for (int i = 0; i < indices.Count; i++) Debug.Log("i: " + indices[i]); }
+
         // go from highest to lowest index
-        for (int i = indices.Count - 1; i >= 0; i--) {
+        for (int i = indices.Count - 1; i >= 0; i--) 
             triangles.RemoveAt(indices[i]);
-        }
     }
 
-    public int CountInvalidTriangles(Vector3[] points, bool findFirst=true) {
+    public int CountInvalidTriangles(Vector3[] points, bool findFirst=true) 
+    {
         int counter = 0;
-        foreach (Vector3 p in points) {
-            foreach(Triangle t in triangles) {
-                if (t.IsPointInsideCircumcircle(p) && !t.IsPointACorner(p)) {
+        foreach (Vector3 p in points) 
+        {
+            foreach (Triangle t in triangles) 
+            {
+                if (t.IsPointInsideCircumcircle(p) && !t.IsPointACorner(p)) 
+                {
                     if (VERBOSE) Debug.Log(" - Found invalid. Point " + p + " : \n" + t.ToString());
                     counter++;
-                    if (findFirst) {
+                    if (findFirst) 
+                    {
                         // only return first to avoid comparing the rest
                         return counter;
                     }
@@ -280,15 +338,18 @@ public class Triangulation
         return counter;
     }
 
-    private void CleanupBase(Vector3[] startPoints) {
+    private void CleanupBase(Vector3[] startPoints) 
+    {
         // only do this if the triangulation should not be converted to Voronoi
         // https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm
         // remove all triangles that contain points from the base triangle
         if (VERBOSE) Debug.Log("CLEANUP (before) triangles: " + triangles.Count);
-        for (int i = triangles.Count-1; i >= 0; i--) {
+        for (int i = triangles.Count-1; i >= 0; i--) 
+        {
             if (triangles[i].IsPointACorner(startPoints[0]) || 
                 triangles[i].IsPointACorner(startPoints[1]) || 
-                triangles[i].IsPointACorner(startPoints[2])) {
+                triangles[i].IsPointACorner(startPoints[2])) 
+            {
                 // then this triangle uses the base triangle points
                 triangles.RemoveAt(i);
             }

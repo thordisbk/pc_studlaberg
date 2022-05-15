@@ -26,20 +26,23 @@ public class RippleColumn : MonoBehaviour
     [Tooltip("Reset values to do another ripple. Resetting on one object resets all other objects.")]
     public bool RESET = false;
 
-    public void SetValues(List<GameObject> nb, float ml, float lt, float perc) {
+    public void SetValues(List<GameObject> nb, float ml, float lt, float perc) 
+    {
         neighbors = nb;
         moveLength = ml;
         lerpTime = lt;
         percStartRipple = perc;
     }
 
-    public void UpdateValues(float ml, float lt, float perc) {
+    public void UpdateValues(float ml, float lt, float perc)
+    {
         moveLength = ml;
         lerpTime = lt;
         percStartRipple = perc;
     }
 
-    private void ResetVariables() {
+    private void ResetVariables() 
+    {
         doRipple = false;
         doingRipple = false;
         rippleDone = false;
@@ -54,15 +57,18 @@ public class RippleColumn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (RESET) {
+        if (RESET) 
+        {
             ResetVariables();
             RESET = false;
         }
 
-        if (doRipple) {
+        if (doRipple) 
+        {
             doRipple = false;
             doPathing = false;  // cannot do both at the same time
-            if (!doingRipple && !rippleDone) {
+            if (!doingRipple && !rippleDone) 
+            {
                 doingRipple = true;
                 goingDown = true;
                 startPos = transform.position;
@@ -71,17 +77,17 @@ public class RippleColumn : MonoBehaviour
             }
         }
 
-        if (doingRipple && goingDown) {
+        if (doingRipple && goingDown) 
             LerpStartToEnd();
-        }
-        else if (doingRipple && !goingDown) {
+        else if (doingRipple && !goingDown)
             LerpEndToStart();
-        }
 
-        if (doPathing) {
+        if (doPathing) 
+        {
             doPathing = false;
             Debug.Log(transform.position);
-            if (!doingPathing && !pathingDone) {
+            if (!doingPathing && !pathingDone) 
+            {
                 doingPathing = true;
                 goingDown = true;
                 startPos = transform.position;
@@ -90,19 +96,19 @@ public class RippleColumn : MonoBehaviour
             }
         }
 
-        if (doingPathing && goingDown) {
+        if (doingPathing && goingDown)
             LerpStartToEnd();
-        }
-        else if (doingPathing && !goingDown) {
+        else if (doingPathing && !goingDown)
             LerpEndToStart();
-        }
  
     }
 
-    private void LerpStartToEnd() {
+    private void LerpStartToEnd() 
+    {
         currLerpTime += Time.deltaTime;
         float perc = currLerpTime / lerpTime;
-        if (currLerpTime > lerpTime) {
+        if (currLerpTime > lerpTime) 
+        {
             currLerpTime = lerpTime;
             perc = currLerpTime / lerpTime;
             goingDown = false;
@@ -110,7 +116,8 @@ public class RippleColumn : MonoBehaviour
         }
         perc = Crossfade(SmoothStart3, SmoothStop2, perc);
 
-        if (perc >= percStartRipple && !doneActivatingOthers) {
+        if (perc >= percStartRipple && !doneActivatingOthers) 
+        {
             doneActivatingOthers = true;
             if (doingPathing) RippleOneNeighbor();
             else RippleNeighbors();
@@ -119,10 +126,12 @@ public class RippleColumn : MonoBehaviour
         transform.position = Vector3.Lerp(startPos, endPos, perc);
     }
 
-    private void LerpEndToStart() {
+    private void LerpEndToStart() 
+    {
         currLerpTime += Time.deltaTime;
         float perc = currLerpTime / lerpTime;
-        if (currLerpTime > lerpTime) {
+        if (currLerpTime > lerpTime) 
+        {
             currLerpTime = lerpTime;
             perc = currLerpTime / lerpTime;
             doingRipple = false;
@@ -137,28 +146,32 @@ public class RippleColumn : MonoBehaviour
         transform.position = Vector3.Lerp(endPos, startPos, perc);
     }
 
-    private void RippleNeighbors() {
+    private void RippleNeighbors() 
+    {
         // set doRipple to true for all neighbors
-        foreach (GameObject obj in neighbors) {
+        foreach (GameObject obj in neighbors)
             obj.GetComponent<RippleColumn>().doRipple = true;
-        }
     }
 
-    private void RippleOneNeighbor() {
+    private void RippleOneNeighbor() 
+    {
         Debug.Log("ripple a neigbor");
         // set doRipple to true for one neighbor, the one with the lowest y-value if transform.position
         float lowestY = Mathf.Infinity;
         int lowestYidx = 0;
         bool someOneFound = false;
-        for (int i = 0; i < neighbors.Count; i++) {
+        for (int i = 0; i < neighbors.Count; i++) 
+        {
             RippleColumn rp_nb = neighbors[i].GetComponent<RippleColumn>();
-            if (neighbors[i].transform.position.y < lowestY && !rp_nb.doingPathing && !rp_nb.pathingDone) {
+            if (neighbors[i].transform.position.y < lowestY && !rp_nb.doingPathing && !rp_nb.pathingDone) 
+            {
                 lowestY = neighbors[i].transform.position.y;
                 lowestYidx = i;
                 someOneFound = true;
             }
         }
-        if (someOneFound) {
+        if (someOneFound) 
+        {
             // then do the pathing, if this is false that means every columns is done with the pathing
             neighbors[lowestYidx].GetComponent<RippleColumn>().doPathing = true;
             Debug.Log("found! at " + neighbors[lowestYidx].transform.position);
@@ -171,9 +184,12 @@ public class RippleColumn : MonoBehaviour
     {
         return t * t * t;
     }
-    public static float SmoothStop2(float t) {
+
+    public static float SmoothStop2(float t) 
+    {
         return 1 - (1 - t) * (1 - t);
     }
+
     // can be used to achieve smoothstep (combine smoothstart and smooth stop)
     public static float Crossfade(System.Func<float, float> a, System.Func<float, float> b, float t)
     {

@@ -13,7 +13,8 @@ public class PerlinHeight
     private float offsetX = 100f;
     private float offsetZ = 100f;
 
-    public PerlinHeight(float maxX, float maxZ, float y, float s, float m, float osX, float osZ, List<GameObject> objects) {
+    public PerlinHeight(float maxX, float maxZ, float y, float s, float m, float osX, float osZ, List<GameObject> objects) 
+    {
         max_x = maxX;
         max_z = maxZ;
         orig_y = y;
@@ -22,7 +23,8 @@ public class PerlinHeight
         offsetX = osX;
         offsetZ = osZ;
 
-        foreach (GameObject obj in objects) {
+        foreach (GameObject obj in objects) 
+        {
             Vector3 pos = obj.transform.position;
             float xCoord = pos.x / max_x * scale + offsetX;
             float yCoord = orig_y;

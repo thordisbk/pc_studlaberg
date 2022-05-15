@@ -19,8 +19,8 @@ public class ColumnMeshGenerator : MonoBehaviour
     private bool bottomMesh = true;
 
     // this function must be called on creation
-    public void Init(VoronoiCell cell, float colLen, bool createBottomMesh=true) {
-        
+    public void Init(VoronoiCell cell, float colLen, bool createBottomMesh=true) 
+    { 
         columnLength = colLen;
         bottomMesh = createBottomMesh;
 
@@ -29,16 +29,14 @@ public class ColumnMeshGenerator : MonoBehaviour
 
         points = new List<Vector3>();
         points.Add(cell.center);
-        for (int i = 0; i < cell.boundaryPoints.Count; i++) {
+        for (int i = 0; i < cell.boundaryPoints.Count; i++)
             points.Add(cell.boundaryPoints[i]);
-        }
 
         // currently the object is positioned at (0,0,0) for the points get mapped to their correct place
         //  since Manager is set at (0,0,0)
         // therefore the cell.center (where the object is instantiated) must be subtracted from all points
-        for (int i = 0; i < points.Count; i++) {
+        for (int i = 0; i < points.Count; i++)
             points[i] = points[i] - cell.center;
-        }
 
         CreateShape();
         UpdateMesh();
@@ -47,17 +45,17 @@ public class ColumnMeshGenerator : MonoBehaviour
         // foreach (Vector3 p in vertices) { Instantiate(spherePrefab, p, Quaternion.identity); }
     }
 
-    private void CreateShape() {
-        
+    private void CreateShape() 
+    {      
         int corners = points.Count - 1;  // subtract the center point
         
         vertices = CreateVertices(corners);
         uv = CreateUVs(corners);
-        triangles = CreatePrismTriangles(corners);
-        
+        triangles = CreatePrismTriangles(corners);    
     }
 
-    void UpdateMesh() {
+    void UpdateMesh() 
+    {
         mesh.Clear();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
@@ -66,18 +64,21 @@ public class ColumnMeshGenerator : MonoBehaviour
         mesh.RecalculateNormals();
     }
 
-    Vector3[] CreateVertices(int corners) {
+    Vector3[] CreateVertices(int corners) 
+    {
         int pl = points.Count;
         int numOfSplits;  // min number of vertex splitting for disconected surfaces
         int v;  // number of vertices needed for the mesh
 
-        if (corners % 2 == 1) {
+        if (corners % 2 == 1) 
+        {
             // then the shape has an odd number of corners (eg triangular, pentagonal)
             //  so there must be four splits
             numOfSplits = 4;
             v = (pl * 2) * 4;
         }
-        else {
+        else 
+        {
             numOfSplits = 3;
             v = (pl * 2) * 3;
         }
@@ -87,7 +88,8 @@ public class ColumnMeshGenerator : MonoBehaviour
 
         // split the vertices to have hard edges between surfaces
         Vector3[] verticesTemp = new Vector3[pl*2];
-        for (int i = 0; i < pl; i++) {
+        for (int i = 0; i < pl; i++) 
+        {
             // for the top of the column
             verticesTemp[i] = points[i];
 
@@ -98,28 +100,29 @@ public class ColumnMeshGenerator : MonoBehaviour
             verticesTemp[i+pl] = p;
         }
 
-        if (numOfSplits == 4) {
+        if (numOfSplits == 4)
             vertices_ = verticesTemp.Concat(verticesTemp).Concat(verticesTemp).Concat(verticesTemp).ToArray();
-        }
-        else {
+        else
             vertices_ = verticesTemp.Concat(verticesTemp).Concat(verticesTemp).ToArray();
-        }
 
         return vertices_;
     }
 
-    Vector2[] CreateUVs(int corners) {
+    Vector2[] CreateUVs(int corners) 
+    {
         int pl = points.Count;
         int numOfSplits;  // min number of vertex splitting for disconected surfaces
         int v;  // number of vertices needed for the mesh
 
-        if (corners % 2 == 1) {
+        if (corners % 2 == 1) 
+        {
             // then the shape has an odd number of corners (eg triangular, pentagonal)
             //  so there must be four splits
             numOfSplits = 4;
             v = (pl * 2) * 4;
         }
-        else {
+        else 
+        {
             numOfSplits = 3;
             v = (pl * 2) * 3;
         }
@@ -129,7 +132,8 @@ public class ColumnMeshGenerator : MonoBehaviour
 
         // split the vertices to have hard edges between surfaces
         Vector2[] uvTemp = new Vector2[pl*2];
-        for (int i = 0; i < pl; i++) {
+        for (int i = 0; i < pl; i++) 
+        {
             // for the top of the column
             if (i == 0) uvTemp[i] = new Vector2(0.5f, 0.5f);
             else if (i % 2 == 0) uvTemp[i] = new Vector2(0f, 0f);
@@ -145,7 +149,8 @@ public class ColumnMeshGenerator : MonoBehaviour
 
         // for the sides of the UV
         Vector2[] uvTempS = new Vector2[pl*2];
-        for (int i = 0; i < pl; i++) {
+        for (int i = 0; i < pl; i++) 
+        {
 
             if (i % 2 == 0) uvTempS[i] = new Vector2(0f, 1f);
             else uvTempS[i] = new Vector2(1f, 1f);
@@ -155,7 +160,8 @@ public class ColumnMeshGenerator : MonoBehaviour
         }
         // for the last odd size
         Vector2[] uvTempL = new Vector2[pl*2];
-        for (int i = 0; i < pl; i++) {
+        for (int i = 0; i < pl; i++) 
+        {
 
             if (i % 2 == 0 || i == corners) uvTempL[i] = new Vector2(0f, 1f);
             else uvTempL[i] = new Vector2(1f, 1f);
@@ -164,18 +170,18 @@ public class ColumnMeshGenerator : MonoBehaviour
             else uvTempL[i+pl] = new Vector2(1f, 0f);
         }
 
-        if (numOfSplits == 4) {
+        if (numOfSplits == 4)
             uv_ = uvTemp.Concat(uvTempS).Concat(uvTempS).Concat(uvTempL).ToArray();
-        }
-        else {
+        else
             uv_ = uvTemp.Concat(uvTempS).Concat(uvTempS).ToArray();
-        }
 
         return uv_;
     }
 
-    int[] CreatePrismTriangles(int corners) {
-        if (corners < 3) {
+    int[] CreatePrismTriangles(int corners) 
+    {
+        if (corners < 3) 
+        {
             Debug.LogError("CreatePrism(): minimum corner number is 3");
             return (new int[0]);
         }
@@ -194,7 +200,8 @@ public class ColumnMeshGenerator : MonoBehaviour
         // first top shape mesh (triangle, square, pentagon, hexagon, heptagon, octagon, ...)
         // _0 == 0 so no need to add it
         List<int> trianglesList = new List<int>();
-        for (int i = 1; i < corners; i++) {
+        for (int i = 1; i < corners; i++) 
+        {
             trianglesList.Add(0);
             trianglesList.Add(i);
             trianglesList.Add(i+1);
@@ -206,12 +213,13 @@ public class ColumnMeshGenerator : MonoBehaviour
         // the sides mesh (in a CW form)
         // all except the last side
         int split;
-        for (int i = 1; i < corners; i++) {
+        for (int i = 1; i < corners; i++) 
+        {
             // use split_1 if i is odd, else use split_2
             split = split_1;
-            if (i % 2 == 0) {
+            if (i % 2 == 0)
                 split = split_2;
-            }
+
             trianglesList.Add(i+split);
             trianglesList.Add(i+a+split);
             trianglesList.Add((i+1)+split);
@@ -222,9 +230,9 @@ public class ColumnMeshGenerator : MonoBehaviour
         // if the number of corners is even, use split_2, else use split_3
         // the last side
         split = split_2;
-        if (corners % 2 == 1) {
+        if (corners % 2 == 1)
             split = split_3;
-        }
+
         trianglesList.Add(corners+split);
         trianglesList.Add(corners+a+split);
         trianglesList.Add(1+split);
@@ -234,8 +242,10 @@ public class ColumnMeshGenerator : MonoBehaviour
 
         // the bottom shape mesh
         // _0 == 0 so no need to add
-        if (bottomMesh) {
-            for (int i = 1; i < corners; i++) {
+        if (bottomMesh) 
+        {
+            for (int i = 1; i < corners; i++) 
+            {
                 trianglesList.Add(0+a);
                 trianglesList.Add((i+1)+a);
                 trianglesList.Add(i+a);

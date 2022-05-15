@@ -18,7 +18,8 @@ public class Triangle
 
     private float _y = 0f;
 
-    public Triangle(Edge e1, Edge e2, Edge e3) {
+    public Triangle(Edge e1, Edge e2, Edge e3) 
+    {
         pointA = e1.pointA;
         pointB = e2.pointA;
         pointC = e3.pointA;
@@ -28,7 +29,8 @@ public class Triangle
         edgeCA = e3;
 
         //if (edgeAB.isSame(edgeBC) || edgeAB.isSame(edgeCA) || edgeBC.isSame(edgeCA)) {
-        if (pointA == pointB || pointB == pointC || pointC == pointA) {
+        if (pointA == pointB || pointB == pointC || pointC == pointA) 
+        {
             Debug.LogError("Same edge added twice to triangle!");
             //Debug.Log("pointA: " + pointA + " pointB: " + pointB + " pointC: " + pointC);
             // Debug.Log(" e1: " + e1.ToString() + " e2: " +e2.ToString() + " e3: " +e3.ToString());
@@ -42,17 +44,21 @@ public class Triangle
         FindCircumcircle();
     }
 
-    public Vector3 GetCircumcenter() {
+    public Vector3 GetCircumcenter() 
+    {
         return circumcenter;
     }
 
-    private bool MakeCounterClockwise(Vector3 point1, Vector3 point2, Vector3 point3) {
+    private bool MakeCounterClockwise(Vector3 point1, Vector3 point2, Vector3 point3) 
+    {
         float result = (point2.x - point1.x) * (point3.z - point1.z) - (point3.x - point1.x) * (point2.z - point1.z);
-        if (result > 0) {
+        if (result > 0) 
+        {
             // then points are CCW and nothing needs to be done
             return true;
         }
-        else {
+        else 
+        {
             // then points are not CCW and points B and C should be switched
             //Debug.Log("Make CCW");
             Vector3 tmp = pointB;
@@ -67,7 +73,8 @@ public class Triangle
         }
     }
 
-    private void FindCircumcircle() {
+    private void FindCircumcircle() 
+    {
         // https://codefound.wordpress.com/2013/02/21/how-to-compute-a-circumcircle/#more-58
         // https://en.wikipedia.org/wiki/Circumscribed_circle
         var p0 = pointA;
@@ -81,8 +88,10 @@ public class Triangle
         var aux2 = -(dA * (p2.x - p1.x) + dB * (p0.x - p2.x) + dC * (p1.x - p0.x));
         var div = (2 * (p0.x * (p2.z - p1.z) + p1.x * (p0.z - p2.z) + p2.x * (p1.z - p0.z)));
 
-        if (div == 0) {
+        if (div == 0) 
+        {
             Debug.LogError("Divide by zero!");
+            return;
         }
 
         //var center = new Vector3(aux1 / div, _y, aux2 / div);
@@ -93,7 +102,8 @@ public class Triangle
         radius = (circumcenter - p0).magnitude;
     }
 
-    public bool IsPointInsideCircumcircle(Vector3 point) {
+    public bool IsPointInsideCircumcircle(Vector3 point) 
+    {
         //var d_squared = (point.x - circumcenter.x) * (point.x - circumcenter.x) + (point.z - circumcenter.z) * (point.z - circumcenter.z);
         //return d_squared < radiusSquared;
         float dist = (circumcenter - point).magnitude;
@@ -101,22 +111,26 @@ public class Triangle
         else return false;
     }
 
-    public bool IsPointACorner(Vector3 point) {
+    public bool IsPointACorner(Vector3 point) 
+    {
         // returns true if point is part of the Triangles 3 vertices
         return (point == pointA || point == pointB || point == pointC);
     }
 
-    public void DrawTriangle() {
+    public void DrawTriangle() 
+    {
         edgeAB.DrawEdge();
         edgeBC.DrawEdge();
         edgeCA.DrawEdge();
     }
 
-    public override string ToString() {
+    public override string ToString() 
+    {
         return "Triangle defined by:\n" + edgeAB + "\n" + edgeBC + "\n" + edgeCA + "\n";
     }  
 
-    public bool isSame(Triangle other) {
+    public bool isSame(Triangle other) 
+    {
         // returns true if the triangles share their vertices
         if (other == null) return false;
         if (!(pointA == other.pointA || pointA == other.pointB || pointA == other.pointC)) return false;
@@ -126,7 +140,8 @@ public class Triangle
         return true;
     }
 
-    public bool isAdjacent(Triangle other) {
+    public bool isAdjacent(Triangle other) 
+    {
         // returns true if the triangles are adjacent, that is, they share an edge
         if (other == null) return false;
         // they may not be the same triangle
@@ -138,7 +153,8 @@ public class Triangle
         return false;
     }
 
-    public bool hasEdge(Edge e) {
+    public bool hasEdge(Edge e) 
+    {
         // returns true if this triangle has e as one of its edges (either flipped or not)
         if (edgeAB.isSame(e) || edgeBC.isSame(e) || edgeCA.isSame(e)) return true;
         return false;

@@ -9,22 +9,24 @@ public class ClockwiseComparerVector3 : IComparer<Vector3>
     // the origin of the clock
     private Vector3 origin;
  
-    public ClockwiseComparerVector3(Vector3 point) {
+    public ClockwiseComparerVector3(Vector3 point) 
+    {
         origin = point;
     }
  
     // Compares two objects and returns a value indicating whether one is less than, equal to, or greater than the other.
-    public int Compare(Vector3 point1, Vector3 point2) {
+    public int Compare(Vector3 point1, Vector3 point2) 
+    {
         return IsClockwise(point1, point2);
     }
 
     // return 1 if point1 is before point2 clockwise
     // return -1 if point2 is before point1 clockwise
     // return 0 if points are identical
-    public int IsClockwise(Vector3 point1, Vector3 point2) {
-        if (point1 == point2) {
+    public int IsClockwise(Vector3 point1, Vector3 point2) 
+    {
+        if (point1 == point2)
             return 0;
-        }
  
         Vector3 point1Offset = point1 - origin;
         Vector3 point2Offset = point2 - origin;
